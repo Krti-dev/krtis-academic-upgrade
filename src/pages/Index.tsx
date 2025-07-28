@@ -1,12 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import Dashboard from "@/components/Dashboard";
+import StudyTracker from "@/components/StudyTracker";
+import Schedule from "@/components/Schedule";
+import FocusTimer from "@/components/FocusTimer";
+import { Toaster } from "sonner";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return <Dashboard />;
+      case "study":
+        return <StudyTracker />;
+      case "schedule":
+        return <Schedule />;
+      case "focus":
+        return <FocusTimer />;
+      case "goals":
+        return <div className="p-6">Goals feature coming soon!</div>;
+      case "ai":
+        return <div className="p-6">AI Assistant feature coming soon!</div>;
+      case "settings":
+        return <div className="p-6">Settings feature coming soon!</div>;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main className="lg:ml-64 p-4 lg:p-6">
+        {renderContent()}
+      </main>
+      <Toaster richColors position="top-right" />
     </div>
   );
 };
