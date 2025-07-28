@@ -41,7 +41,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 rounded-lg border">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, Student! 🎓</h1>
+        <h1 className="text-3xl font-bold mb-2">Welcome to Academia! 🎓</h1>
         <p className="text-muted-foreground">
           You've studied for 31 hours this week. Keep up the excellent work!
         </p>
