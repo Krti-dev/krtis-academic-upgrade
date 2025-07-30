@@ -8,6 +8,7 @@ export interface Subject {
   instructor?: string;
   credits?: number;
   color?: string;
+  expected_classes?: number;
 }
 
 export interface TimetableEntry {

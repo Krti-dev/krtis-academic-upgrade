@@ -36,7 +36,8 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
     code: "",
     instructor: "",
     credits: 3,
-    color: COLORS[0]
+    color: COLORS[0],
+    expected_classes: 30
   });
 
   const [newClass, setNewClass] = useState({
@@ -62,7 +63,8 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
         code: newSubject.code || undefined,
         instructor: newSubject.instructor || undefined,
         credits: newSubject.credits,
-        color: newSubject.color
+        color: newSubject.color,
+        expected_classes: newSubject.expected_classes
       });
 
       setNewSubject({
@@ -70,7 +72,8 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
         code: "",
         instructor: "",
         credits: 3,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)]
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        expected_classes: 30
       });
       
       setSubjectDialogOpen(false);
@@ -231,16 +234,30 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
                         placeholder="e.g., Dr. Smith"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="credits">Credits</Label>
-                      <Input
-                        id="credits"
-                        type="number"
-                        min="1"
-                        max="6"
-                        value={newSubject.credits}
-                        onChange={(e) => setNewSubject(prev => ({ ...prev, credits: parseInt(e.target.value) || 3 }))}
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="credits">Credits</Label>
+                        <Input
+                          id="credits"
+                          type="number"
+                          min="1"
+                          max="6"
+                          value={newSubject.credits}
+                          onChange={(e) => setNewSubject(prev => ({ ...prev, credits: parseInt(e.target.value) || 3 }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="expected-classes">Expected Classes</Label>
+                        <Input
+                          id="expected-classes"
+                          type="number"
+                          min="10"
+                          max="100"
+                          value={newSubject.expected_classes}
+                          onChange={(e) => setNewSubject(prev => ({ ...prev, expected_classes: parseInt(e.target.value) || 30 }))}
+                          placeholder="Total classes in semester"
+                        />
+                      </div>
                     </div>
                     <div>
                       <Label>Color</Label>
@@ -269,36 +286,54 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Weekly Timetable ({timetable.length} classes)
+                Weekly Timetable
               </CardTitle>
               <CardDescription>
                 Schedule your classes for each day of the week
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
-                {DAYS.map((day) => (
-                  <div key={day.value}>
-                    <h4 className="font-medium mb-2">{day.label}</h4>
-                    <div className="space-y-2 ml-4">
-                      {timetableByDay[day.value]?.map((entry) => (
-                        <div key={entry.id} className="flex items-center gap-3 p-2 bg-muted rounded text-sm">
-                          <div 
-                            className="w-3 h-3 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: entry.subject?.color }}
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium">{entry.subject?.name}</p>
-                            <p className="text-muted-foreground">
-                              {entry.start_time} - {entry.end_time}
-                              {entry.location && ` • ${entry.location}`}
-                            </p>
+              <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
+                {DAYS.map((day) => {
+                  const dayClasses = timetableByDay[day.value];
+                  if (!dayClasses || dayClasses.length === 0) return null;
+                  
+                  return (
+                    <div key={day.value} className="border border-border rounded-lg p-3">
+                      <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                        {day.label} ({dayClasses.length} {dayClasses.length === 1 ? 'class' : 'classes'})
+                      </h4>
+                      <div className="space-y-2">
+                        {dayClasses.map((entry) => (
+                          <div key={entry.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                            <div 
+                              className="w-4 h-4 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: entry.subject?.color }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{entry.subject?.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <span>{entry.start_time} - {entry.end_time}</span>
+                                {entry.location && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{entry.location}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      )) || <p className="text-sm text-muted-foreground ml-4">No classes</p>}
+                        ))}
+                      </div>
                     </div>
+                  );
+                })}
+                {timetable.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No classes scheduled yet</p>
                   </div>
-                ))}
+                )}
               </div>
 
               <Dialog open={classDialogOpen} onOpenChange={setClassDialogOpen}>

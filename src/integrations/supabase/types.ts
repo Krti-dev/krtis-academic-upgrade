@@ -254,6 +254,7 @@ export type Database = {
           color: string | null
           created_at: string
           credits: number | null
+          expected_classes: number | null
           id: string
           instructor: string | null
           name: string
@@ -263,6 +264,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           credits?: number | null
+          expected_classes?: number | null
           id?: string
           instructor?: string | null
           name: string
@@ -272,6 +274,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           credits?: number | null
+          expected_classes?: number | null
           id?: string
           instructor?: string | null
           name?: string
