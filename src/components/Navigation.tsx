@@ -9,7 +9,9 @@ import {
   Menu,
   X,
   Brain,
-  Clock
+  Clock,
+  Heart,
+  Wallet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +29,8 @@ const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "goals", label: "Goals", icon: Target },
     { id: "focus", label: "Focus Timer", icon: Clock },
+    { id: "hobbies", label: "Hobbies", icon: Heart },
+    { id: "budget", label: "Budget Tracker", icon: Wallet },
     { id: "ai", label: "AI Assistant", icon: Brain },
     { id: "settings", label: "Settings", icon: Settings },
   ];

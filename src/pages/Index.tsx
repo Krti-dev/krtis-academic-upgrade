@@ -7,6 +7,8 @@ import FocusTimer from "@/components/FocusTimer";
 import TimetableSetup from "@/components/TimetableSetup";
 import AttendanceDialog from "@/components/AttendanceDialog";
 import Settings from "@/components/Settings";
+import HobbyTracker from "@/components/HobbyTracker";
+import BudgetTracker from "@/components/BudgetTracker";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 
@@ -73,6 +75,10 @@ const Index = () => {
         return <Schedule />;
       case "focus":
         return <FocusTimer />;
+      case "hobbies":
+        return <HobbyTracker />;
+      case "budget":
+        return <BudgetTracker />;
       case "goals":
         return <div className="p-6">Goals feature coming soon!</div>;
       case "ai":

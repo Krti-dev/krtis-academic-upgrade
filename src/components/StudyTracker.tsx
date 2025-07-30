@@ -20,8 +20,10 @@ import {
   CheckCircle
 } from "lucide-react";
 import { toast } from "sonner";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const StudyTracker = () => {
+  const { subjects, studySessions, addSubject, addStudySession, loading } = useSupabaseData();
   const [isStudying, setIsStudying] = useState(false);
   const [currentSession, setCurrentSession] = useState({
     subject: "",
@@ -29,15 +31,6 @@ const StudyTracker = () => {
     startTime: null as Date | null,
   });
   const [newSubject, setNewSubject] = useState("");
-  
-  const subjects = ["Mathematics", "Physics", "Chemistry", "Biology", "History", "Literature"];
-  
-  const recentSessions = [
-    { id: 1, subject: "Mathematics", duration: 150, date: "2024-01-20", score: 95 },
-    { id: 2, subject: "Physics", duration: 105, date: "2024-01-19", score: 88 },
-    { id: 3, subject: "Chemistry", duration: 195, date: "2024-01-19", score: 92 },
-    { id: 4, subject: "Biology", duration: 90, date: "2024-01-18", score: 89 },
-  ];
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -104,8 +97,8 @@ const StudyTracker = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {subjects.map((subject) => (
-                        <SelectItem key={subject} value={subject}>
-                          {subject}
+                        <SelectItem key={subject.id} value={subject.id}>
+                          {subject.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -197,7 +190,7 @@ const StudyTracker = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentSessions.map((session) => (
+                {studySessions.map((session) => (
                   <div
                     key={session.id}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
@@ -205,17 +198,24 @@ const StudyTracker = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 bg-primary rounded-full"></div>
                       <div>
-                        <div className="font-medium">{session.subject}</div>
+                        <div className="font-medium">
+                          {session.subject?.name || session.topic || "General Study"}
+                        </div>
                         <div className="text-sm text-muted-foreground">
-                          {formatTime(session.duration)} • {new Date(session.date).toLocaleDateString()}
+                          {formatTime(session.duration_minutes)} • {new Date(session.date).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                    <Badge variant={session.score >= 90 ? "default" : "secondary"}>
-                      {session.score}%
+                    <Badge variant={session.effectiveness_rating && session.effectiveness_rating >= 4 ? "default" : "secondary"}>
+                      {session.effectiveness_rating ? `${session.effectiveness_rating * 20}%` : "N/A"}
                     </Badge>
                   </div>
                 ))}
+                {studySessions.length === 0 && (
+                  <div className="text-center text-muted-foreground py-8">
+                    No study sessions recorded yet. Start your first session!
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -238,10 +238,15 @@ const StudyTracker = () => {
                   className="flex-1"
                 />
                 <Button 
-                  onClick={() => {
+                  onClick={async () => {
                     if (newSubject.trim()) {
-                      toast.success(`Added ${newSubject} as a new subject!`);
-                      setNewSubject("");
+                      try {
+                        await addSubject({ name: newSubject.trim() });
+                        toast.success(`Added ${newSubject} as a new subject!`);
+                        setNewSubject("");
+                      } catch (error) {
+                        toast.error("Failed to add subject");
+                      }
                     }
                   }}
                 >
@@ -251,17 +256,31 @@ const StudyTracker = () => {
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {subjects.map((subject) => (
-                  <div
-                    key={subject}
-                    className="p-3 bg-muted/50 rounded-lg border hover:bg-muted/70 transition-colors"
-                  >
-                    <div className="font-medium text-sm">{subject}</div>
-                    <div className="text-xs text-muted-foreground">
-                      15.5h this week
+                {subjects.map((subject) => {
+                  const weeklyStudyTime = studySessions
+                    .filter(session => 
+                      session.subject_id === subject.id && 
+                      new Date(session.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                    )
+                    .reduce((total, session) => total + session.duration_minutes, 0);
+                  
+                  return (
+                    <div
+                      key={subject.id}
+                      className="p-3 bg-muted/50 rounded-lg border hover:bg-muted/70 transition-colors"
+                    >
+                      <div className="font-medium text-sm">{subject.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatTime(weeklyStudyTime)} this week
+                      </div>
                     </div>
+                  );
+                })}
+                {subjects.length === 0 && (
+                  <div className="text-center text-muted-foreground py-4">
+                    No subjects added yet. Add your first subject above!
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
