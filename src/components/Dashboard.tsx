@@ -117,55 +117,55 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Study Hours</CardTitle>
+            <CardTitle className="text-sm font-medium text-foreground">Study Hours</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalWeeklyHours.toFixed(1)} hours</div>
+            <div className="text-2xl font-bold text-foreground">{stats.totalWeeklyHours.toFixed(1)} hours</div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <TrendingUp className="h-4 w-4 text-success" />
               This week's total
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 dark:from-green-950 dark:to-green-900 dark:border-green-800">
+        <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Attendance</CardTitle>
-            <CalendarDays className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Attendance</CardTitle>
+            <CalendarDays className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.attendanceStats.overall.percentage.toFixed(1)}%</div>
+            <div className="text-2xl font-bold text-foreground">{stats.attendanceStats.overall.percentage.toFixed(1)}%</div>
             <div className="flex items-center gap-2 text-sm">
               <Progress value={stats.attendanceStats.overall.percentage} className="flex-1" />
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-success" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 dark:from-blue-950 dark:to-blue-900 dark:border-blue-800">
+        <Card className="bg-gradient-to-br from-info/5 to-info/10 border-info/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subjects</CardTitle>
-            <BookOpen className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Subjects</CardTitle>
+            <BookOpen className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{subjects.length}</div>
+            <div className="text-2xl font-bold text-foreground">{subjects.length}</div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BookOpen className="h-4 w-4" />
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
               Active subjects
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 dark:from-yellow-950 dark:to-yellow-900 dark:border-yellow-800">
+        <Card className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Effectiveness</CardTitle>
-            <Zap className="h-4 w-4 text-yellow-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Effectiveness</CardTitle>
+            <Zap className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{studySessions.length > 0 ? (studySessions.reduce((sum, s) => sum + (s.effectiveness_rating || 7), 0) / studySessions.length).toFixed(1) : '0.0'}</div>
+            <div className="text-2xl font-bold text-foreground">{studySessions.length > 0 ? (studySessions.reduce((sum, s) => sum + (s.effectiveness_rating || 7), 0) / studySessions.length).toFixed(1) : '0.0'}</div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Zap className="h-4 w-4 text-yellow-500" />
+              <Zap className="h-4 w-4 text-warning" />
               Average effectiveness
             </div>
           </CardContent>
