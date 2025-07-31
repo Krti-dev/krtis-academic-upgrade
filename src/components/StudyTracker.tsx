@@ -30,11 +30,14 @@ const StudyTracker = () => {
   const [currentSession, setCurrentSession] = useState({
     subject: "",
     duration: 0,
+    seconds: 0, // Add seconds tracking
     startTime: null as Date | null,
     topic: "",
     effectivenessRating: 3,
   });
   const [isPaused, setIsPaused] = useState(false);
+  const [dailyGoal, setDailyGoal] = useState(360); // 6 hours in minutes
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -43,8 +46,10 @@ const StudyTracker = () => {
     if (isStudying && !isPaused && currentSession.startTime) {
       interval = setInterval(() => {
         const now = new Date();
-        const duration = Math.floor((now.getTime() - currentSession.startTime!.getTime()) / (1000 * 60));
-        setCurrentSession(prev => ({ ...prev, duration }));
+        const totalSeconds = Math.floor((now.getTime() - currentSession.startTime!.getTime()) / 1000);
+        const duration = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        setCurrentSession(prev => ({ ...prev, duration, seconds }));
       }, 1000);
     }
 
@@ -60,13 +65,18 @@ const StudyTracker = () => {
   });
 
   const todaysStudyTime = todaysSessions.reduce((total, session) => total + session.duration_minutes, 0);
-  const dailyGoal = 360; // 6 hours in minutes
   const progressPercentage = Math.min((todaysStudyTime / dailyGoal) * 100, 100);
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
+  };
+
+  const formatTimeWithSeconds = (minutes: number, seconds: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const startStudySession = () => {
@@ -76,7 +86,7 @@ const StudyTracker = () => {
     }
     setIsStudying(true);
     setIsPaused(false);
-    setCurrentSession(prev => ({ ...prev, startTime: new Date(), duration: 0 }));
+    setCurrentSession(prev => ({ ...prev, startTime: new Date(), duration: 0, seconds: 0 }));
     toast.success(`Started studying ${subjects.find(s => s.id === currentSession.subject)?.name}!`);
   };
 
@@ -88,7 +98,7 @@ const StudyTracker = () => {
   const resumeStudySession = () => {
     setIsPaused(false);
     // Adjust start time to account for paused duration
-    const pausedDuration = currentSession.duration * 60 * 1000; // Convert minutes to milliseconds
+    const pausedDuration = currentSession.duration * 60 * 1000 + currentSession.seconds * 1000; // Convert to milliseconds
     setCurrentSession(prev => ({ 
       ...prev, 
       startTime: new Date(Date.now() - pausedDuration)
@@ -113,7 +123,7 @@ const StudyTracker = () => {
     }
     setIsStudying(false);
     setIsPaused(false);
-    setCurrentSession({ subject: "", duration: 0, startTime: null, topic: "", effectivenessRating: 3 });
+    setCurrentSession({ subject: "", duration: 0, seconds: 0, startTime: null, topic: "", effectivenessRating: 3 });
   };
 
   return (
@@ -163,7 +173,7 @@ const StudyTracker = () => {
                 <div className="space-y-2">
                   <Label>Session Duration</Label>
                   <div className="text-3xl font-bold text-primary">
-                    {formatTime(currentSession.duration)}
+                    {isStudying ? formatTimeWithSeconds(currentSession.duration, currentSession.seconds) : formatTime(currentSession.duration)}
                   </div>
                   {isStudying && (
                     <div className="text-sm text-muted-foreground">
@@ -218,14 +228,38 @@ const StudyTracker = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Today's Goal</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center justify-between">
+                  <span>Today's Goal</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsEditingGoal(!isEditingGoal)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {isEditingGoal ? "Save" : "Edit"}
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{formatTime(todaysStudyTime)} / {formatTime(dailyGoal)}</span>
-                    <span>{Math.round(progressPercentage)}%</span>
-                  </div>
+                  {isEditingGoal ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        value={Math.floor(dailyGoal / 60)}
+                        onChange={(e) => setDailyGoal(parseInt(e.target.value) * 60 || 360)}
+                        className="w-20 h-8"
+                        min="1"
+                        max="24"
+                      />
+                      <span className="text-sm">hours</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-sm">
+                      <span>{formatTime(todaysStudyTime)} / {formatTime(dailyGoal)}</span>
+                      <span>{Math.round(progressPercentage)}%</span>
+                    </div>
+                  )}
                   <Progress value={progressPercentage} className="h-2" />
                 </div>
               </CardContent>

@@ -107,13 +107,23 @@ const Dashboard = () => {
     );
   }
 
+  const getMotivationalMessage = (hours: number) => {
+    if (hours === 0) return "Time to start your study journey! 🚀";
+    if (hours < 5) return "Great start! Keep building momentum! 💪";
+    if (hours < 10) return "You're doing well! Stay consistent! 📈";
+    if (hours < 15) return "Impressive dedication! Keep it up! 🌟";
+    if (hours < 20) return "Outstanding effort! You're crushing it! 🔥";
+    if (hours < 25) return "Exceptional work! You're a study machine! ⚡";
+    return "Incredible achievement! You're unstoppable! 🏆";
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 rounded-lg border">
         <h1 className="text-3xl font-bold mb-2">Welcome to Academia! 🎓</h1>
         <p className="text-muted-foreground">
-          You've studied for {stats.totalWeeklyHours.toFixed(1)} hours this week. Keep up the excellent work!
+          You've studied for {stats.totalWeeklyHours.toFixed(1)} hours this week. {getMotivationalMessage(stats.totalWeeklyHours)}
         </p>
       </div>
 
