@@ -2,13 +2,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Button } from "@/components/ui/button";
+import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle, Calculator } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, Tooltip } from 'recharts';
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import AttendanceMarksDialog from "./AttendanceMarksDialog";
 
 const Dashboard = () => {
   const { subjects, timetable, attendance, studySessions, loading, getAttendanceStats } = useSupabaseData();
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
+  const [marksDialogOpen, setMarksDialogOpen] = useState(false);
 
   // Real-time calculated data
   const stats = useMemo(() => {
@@ -229,23 +233,32 @@ const Dashboard = () => {
                 <CardDescription>Hours spent on each subject</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={stats.subjectData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="hours"
-                      label={({ name, hours }) => `${name}: ${hours}h`}
-                    >
-                      {stats.subjectData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                {stats.subjectData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={stats.subjectData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="hours"
+                        label={({ name, hours }) => `${name}: ${hours}h`}
+                      >
+                        {stats.subjectData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center">
+                    <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-2">No study sessions recorded yet</p>
+                    <p className="text-sm text-muted-foreground">Start tracking your study hours to see subject distribution</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -317,36 +330,147 @@ const Dashboard = () => {
         </TabsContent>
 
         <TabsContent value="attendance" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Overall Attendance</CardTitle>
+                <CardDescription>Your overall attendance pattern</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Present', value: stats.attendanceStats.overall.present, fill: 'hsl(var(--success))' },
+                        { name: 'Absent', value: stats.attendanceStats.overall.total - stats.attendanceStats.overall.present, fill: 'hsl(var(--destructive))' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
+                    />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Subject-wise Attendance</CardTitle>
+                <CardDescription>Attendance percentage by subject</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={Object.entries(stats.attendanceStats.subjects).map(([subjectId, stats]) => {
+                    const subject = subjects.find(s => s.id === subjectId);
+                    return {
+                      name: subject?.name || 'Unknown',
+                      percentage: stats.percentage,
+                      present: stats.present,
+                      absent: stats.total - stats.present,
+                      color: subject?.color || '#3B82F6'
+                    };
+                  })}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                    <Bar dataKey="percentage" fill="hsl(var(--primary))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Attendance Overview</CardTitle>
-              <CardDescription>Your class attendance by subject</CardDescription>
+              <CardTitle>Subject Details & Internal Marks Calculator</CardTitle>
+              <CardDescription>Click on any subject to calculate attendance strategy for internal marks</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {stats.attendanceStats.subjects.map((item) => (
-                  <div key={item.subject.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.subject.color }}
-                      />
-                      <div>
-                        <p className="font-medium">{item.subject.name}</p>
-                        <p className="text-sm text-muted-foreground">{item.total} classes</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">{item.percentage.toFixed(1)}%</p>
-                      <Progress value={item.percentage} className="w-16 h-2" />
-                    </div>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subjects.map((subject) => {
+                  const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
+                  const getMarksForPercentage = (percentage: number) => {
+                    if (percentage >= 95) return 5;
+                    if (percentage >= 90) return 4;
+                    if (percentage >= 85) return 3;
+                    if (percentage >= 80) return 2;
+                    if (percentage >= 75) return 1;
+                    return 0;
+                  };
+                  const currentMarks = getMarksForPercentage(subjectStats.percentage);
+                  
+                  return (
+                    <Card 
+                      key={subject.id} 
+                      className="border-l-4 cursor-pointer hover:shadow-md transition-shadow" 
+                      style={{ borderLeftColor: subject.color }}
+                      onClick={() => {
+                        setSelectedSubject({ ...subject, attendanceStats: subjectStats });
+                        setMarksDialogOpen(true);
+                      }}
+                    >
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: subject.color }}
+                          />
+                          {subject.name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          {subject.code && (
+                            <Badge variant="secondary">{subject.code}</Badge>
+                          )}
+                          <Badge variant={currentMarks >= 3 ? "default" : "destructive"}>
+                            {currentMarks}/5 marks
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Present:</span>
+                            <span className="font-medium text-success">{subjectStats.present}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Absent:</span>
+                            <span className="font-medium text-destructive">{subjectStats.total - subjectStats.present}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Percentage:</span>
+                            <span className="font-medium">{subjectStats.percentage.toFixed(1)}%</span>
+                          </div>
+                          <Progress 
+                            value={subjectStats.percentage} 
+                            className="h-2"
+                          />
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Calculator className="h-4 w-4 mr-2" />
+                          Calculate Strategy
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {selectedSubject && (
+        <AttendanceMarksDialog
+          open={marksDialogOpen}
+          onOpenChange={setMarksDialogOpen}
+          subject={selectedSubject}
+          attendanceStats={selectedSubject.attendanceStats}
+        />
+      )}
     </div>
   );
 };
