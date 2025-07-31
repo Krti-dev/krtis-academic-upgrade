@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Settings as SettingsIcon, RefreshCw, Trash2, Calendar, AlertTriangle } from "lucide-react";
+import { Settings as SettingsIcon, RefreshCw, Trash2, Calendar, AlertTriangle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { clearTimetable, refetch } = useSupabaseData();
@@ -20,6 +21,22 @@ const Settings = () => {
       window.location.reload();
     } catch (error) {
       toast.error("Failed to clear timetable");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleResetSystem = async () => {
+    setClearing(true);
+    try {
+      // Clear both timetable and subjects
+      await clearTimetable();
+      await supabase.from('subjects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      toast.success("System reset successfully!");
+      // Refresh the page to show timetable setup
+      window.location.reload();
+    } catch (error) {
+      toast.error("Failed to reset system");
     } finally {
       setClearing(false);
     }
@@ -53,45 +70,81 @@ const Settings = () => {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Clearing your timetable will remove all your scheduled classes and you'll need to set it up again. 
-              This action cannot be undone.
+              Choose between clearing just your timetable or resetting the entire system (subjects + timetable).
+              Both actions cannot be undone.
             </AlertDescription>
           </Alert>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear Timetable & Reset
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your current timetable
-                  and you will need to set it up again from the beginning.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleClearTimetable}
-                  disabled={clearing}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {clearing ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Clearing...
-                    </>
-                  ) : (
-                    "Yes, clear timetable"
-                  )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Clear Timetable Only
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear Timetable Only?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will remove all scheduled classes but keep your subjects. You can reschedule your classes without re-adding subjects.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearTimetable}
+                    disabled={clearing}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    {clearing ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Clearing...
+                      </>
+                    ) : (
+                      "Clear Timetable"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset Entire System
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset Entire System?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete ALL your subjects and timetable data. You'll need to start from scratch.
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleResetSystem}
+                    disabled={clearing}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {clearing ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Resetting...
+                      </>
+                    ) : (
+                      "Reset Everything"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardContent>
       </Card>
 

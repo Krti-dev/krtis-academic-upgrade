@@ -129,16 +129,40 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20">
+        <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20 md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Attendance</CardTitle>
+            <CardTitle className="text-sm font-medium text-foreground">Attendance by Subject</CardTitle>
             <CalendarDays className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.attendanceStats.overall.percentage.toFixed(1)}%</div>
-            <div className="flex items-center gap-2 text-sm">
-              <Progress value={stats.attendanceStats.overall.percentage} className="flex-1" />
-              <CheckCircle className="h-4 w-4 text-success" />
+            <div className="text-2xl font-bold text-foreground mb-4">{stats.attendanceStats.overall.percentage.toFixed(1)}% Overall</div>
+            <div className="space-y-3">
+              {subjects.map((subject) => {
+                const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
+                return (
+                  <div key={subject.id} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: subject.color }}
+                        />
+                        <span className="font-medium">{subject.name}</span>
+                      </div>
+                      <span className="text-muted-foreground">
+                        {subjectStats.present}/{subjectStats.total} ({subjectStats.percentage.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <Progress 
+                      value={subjectStats.percentage} 
+                      className="h-2"
+                    />
+                  </div>
+                );
+              })}
+              {subjects.length === 0 && (
+                <p className="text-sm text-muted-foreground">No subjects added yet</p>
+              )}
             </div>
           </CardContent>
         </Card>

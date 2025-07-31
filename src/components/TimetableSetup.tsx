@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Clock, MapPin, Trash2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { useSupabaseData, Subject, TimetableEntry } from "@/hooks/useSupabaseData";
+import { supabase } from "@/integrations/supabase/client";
 
 const DAYS = [
   { value: 1, label: "Monday" },
@@ -29,7 +31,7 @@ interface TimetableSetupProps {
 }
 
 const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
-  const { subjects, timetable, addSubject, addTimetableEntry, loading } = useSupabaseData();
+  const { subjects, timetable, addSubject, addTimetableEntry, loading, refetch } = useSupabaseData();
   
   const [newSubject, setNewSubject] = useState({
     name: "",
@@ -118,6 +120,29 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
     }
   };
 
+  const handleDeleteSubject = async (subjectId: string) => {
+    try {
+      // Delete associated timetable entries first
+      await supabase.from('timetable').delete().eq('subject_id', subjectId);
+      // Delete the subject
+      await supabase.from('subjects').delete().eq('id', subjectId);
+      refetch();
+      toast.success("Subject deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete subject");
+    }
+  };
+
+  const handleDeleteTimetableEntry = async (entryId: string) => {
+    try {
+      await supabase.from('timetable').delete().eq('id', entryId);
+      refetch();
+      toast.success("Class deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete class");
+    }
+  };
+
   const canComplete = subjects.length > 0 && timetable.length > 0;
 
   const getTimetableByDay = () => {
@@ -188,6 +213,30 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
                         {subject.credits} credits
                       </span>
                     )}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Subject</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{subject.name}"? This will also remove all associated classes from your timetable.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteSubject(subject.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 ))}
               </div>
@@ -322,6 +371,30 @@ const TimetableSetup = ({ onComplete }: TimetableSetupProps) => {
                                 )}
                               </div>
                             </div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Class</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this class "{entry.subject?.name}" on {DAYS.find(d => d.value === entry.day_of_week)?.label}?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteTimetableEntry(entry.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         ))}
                       </div>
