@@ -9,6 +9,7 @@ import AttendanceDialog from "@/components/AttendanceDialog";
 import Settings from "@/components/Settings";
 import HobbyTracker from "@/components/HobbyTracker";
 import BudgetTracker from "@/components/BudgetTracker";
+import { Goals } from "@/components/Goals";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 
@@ -80,7 +81,7 @@ const Index = () => {
       case "budget":
         return <BudgetTracker />;
       case "goals":
-        return <div className="p-6">Goals feature coming soon!</div>;
+        return <Goals />;
       case "ai":
         return <div className="p-6">AI Assistant feature coming soon!</div>;
       case "settings":
