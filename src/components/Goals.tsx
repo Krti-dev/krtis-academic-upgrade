@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import confetti from 'canvas-confetti';
 
 interface Goal {
   id: string;
@@ -44,19 +45,19 @@ interface Task {
 }
 
 const categoryColors: Record<string, string> = {
-  academic: "bg-blue-50 border-blue-200 hover:bg-blue-100",
-  personal: "bg-green-50 border-green-200 hover:bg-green-100",
-  health: "bg-red-50 border-red-200 hover:bg-red-100",
-  career: "bg-purple-50 border-purple-200 hover:bg-purple-100",
-  financial: "bg-yellow-50 border-yellow-200 hover:bg-yellow-100",
+  academic: "bg-primary/10 border-primary/20 hover:bg-primary/15",
+  personal: "bg-success/10 border-success/20 hover:bg-success/15",
+  health: "bg-destructive/10 border-destructive/20 hover:bg-destructive/15",
+  career: "bg-info/10 border-info/20 hover:bg-info/15",
+  financial: "bg-warning/10 border-warning/20 hover:bg-warning/15",
 };
 
 const categoryBadgeColors: Record<string, string> = {
-  academic: "bg-blue-100 text-blue-800",
-  personal: "bg-green-100 text-green-800",
-  health: "bg-red-100 text-red-800",
-  career: "bg-purple-100 text-purple-800",
-  financial: "bg-yellow-100 text-yellow-800",
+  academic: "bg-primary/20 text-primary",
+  personal: "bg-success/20 text-success",
+  health: "bg-destructive/20 text-destructive",
+  career: "bg-info/20 text-info",
+  financial: "bg-warning/20 text-warning",
 };
 
 export const Goals = () => {
@@ -231,6 +232,15 @@ export const Goals = () => {
       task.id === taskId ? { ...task, ...updates } : task
     );
     setTasks(updatedTasks);
+    
+    // Trigger confetti if task is being completed
+    if (updates.completed === true) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
   };
 
   const removeTask = (tasks: Task[], taskId: string, setTasks: (tasks: Task[]) => void) => {
@@ -245,11 +255,13 @@ export const Goals = () => {
   const TasksList = ({ 
     tasks, 
     onTaskUpdate, 
-    editable = false 
+    editable = false,
+    goalId
   }: { 
     tasks: Task[], 
     onTaskUpdate?: (tasks: Task[]) => void,
-    editable?: boolean 
+    editable?: boolean,
+    goalId?: string
   }) => (
     <div className="space-y-2">
       {tasks.map((task) => (
@@ -259,9 +271,26 @@ export const Goals = () => {
             onCheckedChange={(checked) => {
               if (onTaskUpdate) {
                 updateTask(tasks, task.id, { completed: !!checked }, onTaskUpdate);
+              } else if (goalId) {
+                // For non-editable mode, update directly in database
+                const goal = goals.find(g => g.id === goalId);
+                if (goal) {
+                  const updatedTasks = goal.tasks?.map(t => 
+                    t.id === task.id ? { ...t, completed: !!checked } : t
+                  ) || [];
+                  
+                  if (checked) {
+                    confetti({
+                      particleCount: 100,
+                      spread: 70,
+                      origin: { y: 0.6 }
+                    });
+                  }
+                  
+                  handleUpdateGoal(goalId, { tasks: updatedTasks });
+                }
               }
             }}
-            disabled={!editable && !onTaskUpdate}
           />
           {editable ? (
             <div className="flex-1 flex items-center gap-2">
@@ -478,36 +507,46 @@ export const Goals = () => {
                   <div className="space-y-2">
                     {totalTasks > 0 && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="flex-1 bg-gray-200 rounded-full h-1">
-                          <div 
-                            className="bg-primary h-1 rounded-full transition-all duration-300" 
-                            style={{ width: `${progress}%` }}
-                          />
+                  <div className="flex-1 bg-muted rounded-full h-1">
+                    <div 
+                      className="bg-primary h-1 rounded-full transition-all duration-300" 
+                      style={{ width: `${progress}%` }}
+                    />
                         </div>
                         <span>{completedTasks}/{totalTasks}</span>
                       </div>
                     )}
                     <TasksList 
                       tasks={goal.tasks.slice(0, 3)} 
-                      onTaskUpdate={(tasks) => {
-                        const updatedTasks = [...tasks];
-                        if (goal.tasks!.length > 3) {
-                          updatedTasks.push(...goal.tasks!.slice(3));
-                        }
-                        handleUpdateGoal(goal.id, { tasks: updatedTasks });
-                      }}
+                      goalId={goal.id}
                     />
                     {goal.tasks.length > 3 && (
-                      <p className="text-xs text-muted-foreground">
-                        +{goal.tasks.length - 3} more tasks
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          +{goal.tasks.length - 3} more tasks
+                        </p>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="w-full text-xs"
+                          onClick={() => setEditingGoal(goal)}
+                        >
+                          View all tasks
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )}
 
                 {(!goal.tasks || goal.tasks.length === 0) && goal.description && (
                   <p className="text-sm text-muted-foreground line-clamp-3">
-                    {JSON.parse(goal.description).description || goal.description}
+                    {(() => {
+                      try {
+                        return JSON.parse(goal.description).description || goal.description;
+                      } catch {
+                        return goal.description;
+                      }
+                    })()}
                   </p>
                 )}
               </CardContent>
