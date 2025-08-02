@@ -36,7 +36,10 @@ const StudyTracker = () => {
     effectivenessRating: 3,
   });
   const [isPaused, setIsPaused] = useState(false);
-  const [dailyGoal, setDailyGoal] = useState(360); // 6 hours in minutes
+  const [dailyGoal, setDailyGoal] = useState(() => {
+    const saved = localStorage.getItem('dailyStudyGoal');
+    return saved ? parseInt(saved) : 360; // 6 hours in minutes
+  });
   const [isEditingGoal, setIsEditingGoal] = useState(false);
 
   // Timer effect
@@ -247,7 +250,11 @@ const StudyTracker = () => {
                       <Input
                         type="number"
                         value={Math.floor(dailyGoal / 60)}
-                        onChange={(e) => setDailyGoal(parseInt(e.target.value) * 60 || 360)}
+                        onChange={(e) => {
+                          const newGoal = parseInt(e.target.value) * 60 || 360;
+                          setDailyGoal(newGoal);
+                          localStorage.setItem('dailyStudyGoal', newGoal.toString());
+                        }}
                         className="w-20 h-8"
                         min="1"
                         max="24"

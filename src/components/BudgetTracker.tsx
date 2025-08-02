@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wallet, Plus, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
+import { Wallet, Plus, TrendingDown, TrendingUp, AlertTriangle, BarChart3, Activity } from "lucide-react";
 import { toast } from "sonner";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from "recharts";
 
 const BudgetTracker = () => {
   const [newExpense, setNewExpense] = useState({
@@ -15,19 +16,20 @@ const BudgetTracker = () => {
     amount: "",
     category: ""
   });
+  const [chartType, setChartType] = useState<"line" | "radar">("line");
 
   const [expenses] = useState([
-    { id: 1, description: "Lunch", amount: 12.50, category: "Food", date: "2024-01-20" },
-    { id: 2, description: "Textbooks", amount: 85.00, category: "Education", date: "2024-01-19" },
-    { id: 3, description: "Movie ticket", amount: 15.00, category: "Entertainment", date: "2024-01-18" },
-    { id: 4, description: "Coffee", amount: 4.50, category: "Food", date: "2024-01-18" },
+    { id: 1, description: "Lunch", amount: 125.50, category: "Food", date: "2024-01-20" },
+    { id: 2, description: "Textbooks", amount: 8500.00, category: "Education", date: "2024-01-19" },
+    { id: 3, description: "Movie ticket", amount: 150.00, category: "Entertainment", date: "2024-01-18" },
+    { id: 4, description: "Coffee", amount: 45.50, category: "Food", date: "2024-01-18" },
   ]);
 
   const [budgetLimits] = useState([
-    { category: "Food", limit: 200, spent: 85.50 },
-    { category: "Entertainment", limit: 100, spent: 45.00 },
-    { category: "Education", limit: 300, spent: 125.00 },
-    { category: "Transport", limit: 80, spent: 32.00 },
+    { category: "Food", limit: 2000, spent: 855.50 },
+    { category: "Entertainment", limit: 1000, spent: 450.00 },
+    { category: "Education", limit: 3000, spent: 1250.00 },
+    { category: "Transport", limit: 800, spent: 320.00 },
   ]);
 
   const categories = ["Food", "Entertainment", "Education", "Transport", "Other"];
@@ -63,7 +65,7 @@ const BudgetTracker = () => {
             <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${getTotalBudget().toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{getTotalBudget().toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Monthly limit</p>
           </CardContent>
         </Card>
@@ -73,7 +75,7 @@ const BudgetTracker = () => {
             <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">${getTotalSpent().toFixed(2)}</div>
+            <div className="text-2xl font-bold text-destructive">₹{getTotalSpent().toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingDown className="inline h-3 w-3 mr-1" />
               This month
@@ -87,7 +89,7 @@ const BudgetTracker = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              ${(getTotalBudget() - getTotalSpent()).toFixed(2)}
+              ₹{(getTotalBudget() - getTotalSpent()).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 mr-1" />
@@ -151,10 +153,63 @@ const BudgetTracker = () => {
       {/* Budget Categories */}
       <Card>
         <CardHeader>
-          <CardTitle>Budget by Category</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            Budget by Category
+            <div className="flex gap-2">
+              <Button
+                variant={chartType === "line" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("line")}
+              >
+                <BarChart3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={chartType === "radar" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartType("radar")}
+              >
+                <Activity className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Chart Section */}
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                {chartType === "line" ? (
+                  <LineChart data={budgetLimits.map(budget => ({
+                    category: budget.category,
+                    spent: budget.spent,
+                    limit: budget.limit,
+                    remaining: budget.limit - budget.spent
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis dataKey="category" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="spent" stroke="hsl(var(--destructive))" strokeWidth={2} name="Spent" />
+                    <Line type="monotone" dataKey="limit" stroke="hsl(var(--primary))" strokeWidth={2} name="Budget Limit" />
+                  </LineChart>
+                ) : (
+                  <RadarChart data={budgetLimits.map(budget => ({
+                    category: budget.category,
+                    spent: (budget.spent / budget.limit) * 100,
+                    limit: 100
+                  }))}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="category" />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                    <Radar name="Spent %" dataKey="spent" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.3} />
+                    <Tooltip />
+                  </RadarChart>
+                )}
+              </ResponsiveContainer>
+            </div>
+
+            {/* Budget Bars */}
             {budgetLimits.map((budget) => {
               const percentage = (budget.spent / budget.limit) * 100;
               const isOverBudget = percentage > 100;
@@ -168,7 +223,7 @@ const BudgetTracker = () => {
                       {isOverBudget && <AlertTriangle className="h-4 w-4 text-destructive" />}
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      ${budget.spent.toFixed(2)} / ${budget.limit.toFixed(2)}
+                      ₹{budget.spent.toFixed(2)} / ₹{budget.limit.toFixed(2)}
                     </span>
                   </div>
                   <Progress 
@@ -177,7 +232,7 @@ const BudgetTracker = () => {
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>{percentage.toFixed(1)}% used</span>
-                    <span>${(budget.limit - budget.spent).toFixed(2)} remaining</span>
+                    <span>₹{(budget.limit - budget.spent).toFixed(2)} remaining</span>
                   </div>
                 </div>
               );
@@ -208,7 +263,7 @@ const BudgetTracker = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">${expense.amount.toFixed(2)}</div>
+                  <div className="font-medium">₹{expense.amount.toFixed(2)}</div>
                   <Badge variant="secondary" className="text-xs">
                     {expense.category}
                   </Badge>

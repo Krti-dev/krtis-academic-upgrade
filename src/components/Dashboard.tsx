@@ -197,14 +197,29 @@ const Dashboard = () => {
 
         <Card className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Effectiveness</CardTitle>
-            <Zap className="h-4 w-4 text-warning" />
+            <CardTitle className="text-sm font-medium text-foreground">Study Streak</CardTitle>
+            <Award className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{studySessions.length > 0 ? (studySessions.reduce((sum, s) => sum + (s.effectiveness_rating || 7), 0) / studySessions.length).toFixed(1) : '0.0'}</div>
+            <div className="text-2xl font-bold text-foreground">
+              {(() => {
+                let streak = 0;
+                const today = new Date();
+                for (let i = 0; i < 30; i++) {
+                  const checkDate = new Date(today);
+                  checkDate.setDate(today.getDate() - i);
+                  const hasStudied = studySessions.some(s => 
+                    new Date(s.date).toDateString() === checkDate.toDateString()
+                  );
+                  if (hasStudied) streak++;
+                  else break;
+                }
+                return streak;
+              })()} days
+            </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Zap className="h-4 w-4 text-warning" />
-              Average effectiveness
+              <Award className="h-4 w-4 text-warning" />
+              Keep the streak going! 🔥
             </div>
           </CardContent>
         </Card>
