@@ -178,6 +178,28 @@ const Schedule = () => {
     setIsDialogOpen(true);
   };
 
+  const handleDrop = (e: React.DragEvent, date: string, time: string) => {
+    e.preventDefault();
+    try {
+      const eventData = JSON.parse(e.dataTransfer.getData('text/plain'));
+      const updatedEvent = {
+        ...eventData,
+        date,
+        startTime: time,
+        endTime: addMinutesToTime(time, 30) // Keep same duration for now
+      };
+      
+      setEvents(events.map(evt => evt.id === eventData.id ? updatedEvent : evt));
+      toast.success("Event moved successfully!");
+    } catch (error) {
+      console.error('Error moving event:', error);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
   const addMinutesToTime = (time: string, minutes: number) => {
     const [hours, mins] = time.split(':').map(Number);
     const totalMins = hours * 60 + mins + minutes;
@@ -302,7 +324,7 @@ const Schedule = () => {
       <Card>
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
-            <div className="p-2 border-r bg-muted/50">
+            <div className="p-3 border-r bg-muted/50 min-w-[60px]">
               <span className="text-xs font-medium">Time</span>
             </div>
             {weekDates.map((date, index) => {
@@ -312,7 +334,7 @@ const Schedule = () => {
               return (
                 <div 
                   key={date} 
-                  className={`p-2 border-r text-center ${isToday ? 'bg-primary/10' : ''}`}
+                  className={`p-3 border-r text-center min-w-[120px] ${isToday ? 'bg-primary/10' : ''}`}
                 >
                   <div className="text-xs font-medium">{dayNames[index]}</div>
                   <div className={`text-sm ${isToday ? 'font-bold text-primary' : ''}`}>
@@ -323,41 +345,61 @@ const Schedule = () => {
             })}
           </div>
 
-          <div className="max-h-[600px] overflow-y-auto">
-            {timeSlots.map((time) => (
-              <div key={time} className="grid grid-cols-8 border-b border-muted/30">
-                <div className="p-2 border-r bg-muted/20 text-xs text-muted-foreground">
-                  {time}
-                </div>
-                {weekDates.map((date) => {
-                  const slotEvents = getEventsForSlot(date, time);
-                  
-                  return (
-                    <div
-                      key={`${date}-${time}`}
-                      className="p-1 border-r min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handleSlotClick(date, time)}
-                    >
-                      {slotEvents.map((event) => (
-                        <div
-                          key={event.id}
-                          className={`p-1 rounded text-xs mb-1 border cursor-pointer ${getTypeColor(event.type)}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditEvent(event);
-                          }}
-                        >
-                          <div className="font-medium truncate">{event.title}</div>
-                          <div className="text-xs opacity-75">
-                            {formatTimeRange(event.startTime, event.endTime)}
+          <div className="max-h-[600px] overflow-y-auto relative">
+            {timeSlots.map((time) => {
+              const currentTime = new Date();
+              const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+              const isCurrentTimeSlot = time === currentTimeString.slice(0, -1) + (parseInt(currentTimeString.slice(-1)) < 30 ? '0' : '30');
+              const today = new Date().toISOString().split('T')[0];
+              
+              return (
+                <div key={time} className="grid grid-cols-8 border-b border-muted/30 relative">
+                  <div className="p-3 border-r bg-muted/20 text-xs text-muted-foreground min-w-[60px]">
+                    {time}
+                  </div>
+                  {weekDates.map((date) => {
+                    const slotEvents = getEventsForSlot(date, time);
+                    const isToday = date === today;
+                    const showCurrentTimeMarker = isToday && isCurrentTimeSlot;
+                    
+                    return (
+                      <div
+                        key={`${date}-${time}`}
+                        className="p-1 border-r min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors relative min-w-[120px]"
+                        onClick={() => handleSlotClick(date, time)}
+                        onDrop={(e) => handleDrop(e, date, time)}
+                        onDragOver={handleDragOver}
+                      >
+                        {showCurrentTimeMarker && (
+                          <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 z-10">
+                            <div className="absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full"></div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
+                        )}
+                        {slotEvents.map((event) => (
+                          <div
+                            key={event.id}
+                            className={`p-1 rounded text-xs mb-1 border cursor-pointer ${getTypeColor(event.type)} transition-all hover:shadow-sm`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEvent(event);
+                            }}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', JSON.stringify(event));
+                            }}
+                          >
+                            <div className="font-medium truncate">{event.title}</div>
+                            <div className="text-xs opacity-75">
+                              {formatTimeRange(event.startTime, event.endTime)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

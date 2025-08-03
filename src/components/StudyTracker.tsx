@@ -41,6 +41,11 @@ const StudyTracker = () => {
     return saved ? parseInt(saved) : 360; // 6 hours in minutes
   });
   const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [weeklyGoal, setWeeklyGoal] = useState(() => {
+    const saved = localStorage.getItem('weeklyStudyGoal');
+    return saved ? parseInt(saved) : 25;
+  });
+  const [isEditingWeekly, setIsEditingWeekly] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -307,9 +312,26 @@ const StudyTracker = () => {
         <TabsContent value="history" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Recent Study Sessions
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Recent Study Sessions
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    if (confirm("Are you sure you want to reset your study history? This action cannot be undone.")) {
+                      // Clear study sessions from local storage or implement actual reset
+                      localStorage.removeItem('studySessions');
+                      toast.success("Study history reset successfully!");
+                      // Trigger a refresh of data
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  Reset History
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -358,14 +380,44 @@ const StudyTracker = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Trophy className="h-4 w-4" />
-                      Weekly Goal
+                    <CardTitle className="text-sm font-medium flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4" />
+                        Weekly Goal
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setIsEditingWeekly(!isEditingWeekly)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        {isEditingWeekly ? "Save" : "Edit"}
+                      </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <div className="text-2xl font-bold">25h</div>
+                      <div className="text-2xl font-bold">
+                        {isEditingWeekly ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={weeklyGoal}
+                              onChange={(e) => {
+                                const newGoal = parseInt(e.target.value) || 25;
+                                setWeeklyGoal(newGoal);
+                                localStorage.setItem('weeklyStudyGoal', newGoal.toString());
+                              }}
+                              className="w-16 h-8 text-xl font-bold"
+                              min="1"
+                              max="168"
+                            />
+                            <span className="text-lg">h</span>
+                          </div>
+                        ) : (
+                          `${weeklyGoal}h`
+                        )}
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {formatTime(studySessions
                           .filter(s => new Date(s.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -375,7 +427,7 @@ const StudyTracker = () => {
                       <Progress 
                         value={Math.min((studySessions
                           .filter(s => new Date(s.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                          .reduce((total, s) => total + s.duration_minutes, 0) / (25 * 60)) * 100, 100)} 
+                          .reduce((total, s) => total + s.duration_minutes, 0) / (weeklyGoal * 60)) * 100, 100)}
                         className="h-2" 
                       />
                     </div>
@@ -394,14 +446,26 @@ const StudyTracker = () => {
                       {(() => {
                         let streak = 0;
                         const today = new Date();
-                        for (let i = 0; i < 30; i++) {
+                        
+                        // Check if today has study sessions
+                        const hasStudiedToday = studySessions.some(s => 
+                          new Date(s.date).toDateString() === today.toDateString()
+                        );
+                        
+                        // Start from today if studied, otherwise from yesterday
+                        const startDay = hasStudiedToday ? 0 : 1;
+                        
+                        for (let i = startDay; i < 30; i++) {
                           const checkDate = new Date(today);
                           checkDate.setDate(today.getDate() - i);
                           const hasStudied = studySessions.some(s => 
                             new Date(s.date).toDateString() === checkDate.toDateString()
                           );
-                          if (hasStudied) streak++;
-                          else break;
+                          if (hasStudied) {
+                            streak++;
+                          } else {
+                            break;
+                          }
                         }
                         return streak;
                       })()} days
