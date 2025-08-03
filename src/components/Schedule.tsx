@@ -64,13 +64,11 @@ const Schedule = () => {
     priority: "medium"
   });
 
-  // Time slots from 6 AM to 11 PM in 30-minute intervals
+  // Time slots from 6 AM to 11 PM in 1-hour intervals
   const timeSlots = [];
   for (let hour = 6; hour <= 23; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      timeSlots.push(time);
-    }
+    const time = `${hour.toString().padStart(2, '0')}:00`;
+    timeSlots.push(time);
   }
 
   useEffect(() => {
@@ -162,7 +160,7 @@ const Schedule = () => {
 
   const handleSlotClick = (date: string, time: string) => {
     setSelectedSlot({ date, time });
-    const endTime = addMinutesToTime(time, 30); // Default 30-minute slot
+    const endTime = addMinutesToTime(time, 60); // Default 1-hour slot
     setNewEvent({
       title: "",
       goalId: "",
@@ -186,7 +184,7 @@ const Schedule = () => {
         ...eventData,
         date,
         startTime: time,
-        endTime: addMinutesToTime(time, 30) // Keep same duration for now
+        endTime: addMinutesToTime(time, 60) // Keep same duration for now
       };
       
       setEvents(events.map(evt => evt.id === eventData.id ? updatedEvent : evt));
@@ -324,7 +322,7 @@ const Schedule = () => {
       <Card>
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
-            <div className="p-3 border-r bg-muted/50 min-w-[60px]">
+            <div className="p-3 border-r bg-muted/50 w-[80px] flex-shrink-0">
               <span className="text-xs font-medium">Time</span>
             </div>
             {weekDates.map((date, index) => {
@@ -334,7 +332,7 @@ const Schedule = () => {
               return (
                 <div 
                   key={date} 
-                  className={`p-3 border-r text-center min-w-[120px] ${isToday ? 'bg-primary/10' : ''}`}
+                  className={`p-3 border-r text-center flex-1 ${isToday ? 'bg-primary/10' : ''}`}
                 >
                   <div className="text-xs font-medium">{dayNames[index]}</div>
                   <div className={`text-sm ${isToday ? 'font-bold text-primary' : ''}`}>
@@ -349,12 +347,14 @@ const Schedule = () => {
             {timeSlots.map((time) => {
               const currentTime = new Date();
               const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
-              const isCurrentTimeSlot = time === currentTimeString.slice(0, -1) + (parseInt(currentTimeString.slice(-1)) < 30 ? '0' : '30');
+              const currentHour = currentTime.getHours();
+              const timeHour = parseInt(time.split(':')[0]);
+              const isCurrentTimeSlot = timeHour === currentHour;
               const today = new Date().toISOString().split('T')[0];
               
               return (
                 <div key={time} className="grid grid-cols-8 border-b border-muted/30 relative">
-                  <div className="p-3 border-r bg-muted/20 text-xs text-muted-foreground min-w-[60px]">
+                  <div className="p-3 border-r bg-muted/20 text-xs text-muted-foreground w-[80px] flex-shrink-0">
                     {time}
                   </div>
                   {weekDates.map((date) => {
@@ -365,13 +365,18 @@ const Schedule = () => {
                     return (
                       <div
                         key={`${date}-${time}`}
-                        className="p-1 border-r min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors relative min-w-[120px]"
+                        className="p-1 border-r min-h-[60px] cursor-pointer hover:bg-muted/50 transition-colors relative flex-1"
                         onClick={() => handleSlotClick(date, time)}
                         onDrop={(e) => handleDrop(e, date, time)}
                         onDragOver={handleDragOver}
                       >
                         {showCurrentTimeMarker && (
-                          <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-500 z-10">
+                          <div 
+                            className="absolute left-0 right-0 h-0.5 bg-red-500 z-20"
+                            style={{ 
+                              top: `${(currentTime.getMinutes() / 60) * 100}%`
+                            }}
+                          >
                             <div className="absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full"></div>
                           </div>
                         )}
