@@ -9,11 +9,12 @@ import { toast } from "sonner";
 
 const HobbyTracker = () => {
   const [newHobby, setNewHobby] = useState("");
-  const [hobbies] = useState([
-    { id: 1, name: "Reading", timeThisWeek: 420, lastActivity: "2024-01-20" },
-    { id: 2, name: "Guitar", timeThisWeek: 300, lastActivity: "2024-01-19" },
-    { id: 3, name: "Photography", timeThisWeek: 180, lastActivity: "2024-01-18" },
-  ]);
+  const [hobbies, setHobbies] = useState<Array<{
+    id: number;
+    name: string;
+    timeThisWeek: number;
+    lastActivity: string;
+  }>>([]);
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -23,10 +24,22 @@ const HobbyTracker = () => {
 
   const addHobby = () => {
     if (newHobby.trim()) {
+      const newHobbyObj = {
+        id: Date.now(),
+        name: newHobby.trim(),
+        timeThisWeek: 0,
+        lastActivity: new Date().toISOString().split('T')[0]
+      };
+      setHobbies([...hobbies, newHobbyObj]);
       toast.success(`Added ${newHobby} to your hobbies!`);
       setNewHobby("");
     }
   };
+
+  const totalTimeThisWeek = hobbies.reduce((total, hobby) => total + hobby.timeThisWeek, 0);
+  const mostActiveHobby = hobbies.length > 0 
+    ? hobbies.reduce((max, hobby) => hobby.timeThisWeek > max.timeThisWeek ? hobby : max)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -64,10 +77,10 @@ const HobbyTracker = () => {
             <CardTitle className="text-sm font-medium">Total Time This Week</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15h 0m</div>
+            <div className="text-2xl font-bold">{formatTime(totalTimeThisWeek)}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 mr-1" />
-              +2h from last week
+              Track your progress
             </p>
           </CardContent>
         </Card>
@@ -90,10 +103,12 @@ const HobbyTracker = () => {
             <CardTitle className="text-sm font-medium">Most Active</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">Reading</div>
+            <div className="text-lg font-bold">
+              {mostActiveHobby ? mostActiveHobby.name : "None yet"}
+            </div>
             <p className="text-xs text-muted-foreground">
               <Clock className="inline h-3 w-3 mr-1" />
-              7h this week
+              {mostActiveHobby ? formatTime(mostActiveHobby.timeThisWeek) : "0h 0m"} this week
             </p>
           </CardContent>
         </Card>
