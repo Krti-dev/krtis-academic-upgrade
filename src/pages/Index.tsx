@@ -8,7 +8,7 @@ import TimetableSetup from "@/components/TimetableSetup";
 import AttendanceDialog from "@/components/AttendanceDialog";
 import Settings from "@/components/Settings";
 import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
-import BudgetTracker from "@/components/BudgetTracker";
+import BudgetTrackerImproved from "@/components/BudgetTrackerImproved";
 import { Goals } from "@/components/Goals";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
@@ -79,7 +79,7 @@ const Index = () => {
       case "hobbies":
         return <HobbyTrackerWithTimer />;
       case "budget":
-        return <BudgetTracker />;
+        return <BudgetTrackerImproved />;
       case "goals":
         return <Goals />;
       case "ai":

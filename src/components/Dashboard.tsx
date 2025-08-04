@@ -162,7 +162,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple/5 to-purple/10 border-purple/20">
+        <Card className="bg-gradient-to-br from-purple/10 to-purple/5 border-purple/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Avg. Effectiveness</CardTitle>
             <Zap className="h-4 w-4 text-purple" />
@@ -214,7 +214,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-info/5 to-info/10 border-info/20">
+        <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Subjects</CardTitle>
             <BookOpen className="h-4 w-4 text-info" />
@@ -222,7 +222,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{subjects.length}</div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <BookOpen className="h-4 w-4 text-info" />
               Active subjects
             </div>
           </CardContent>
@@ -257,7 +257,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-pink/5 to-pink/10 border-pink/20">
+        <Card className="bg-gradient-to-br from-pink/10 to-pink/5 border-pink/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Hobby Time</CardTitle>
             <Heart className="h-4 w-4 text-pink" />
@@ -271,7 +271,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-emerald/5 to-emerald/10 border-emerald/20">
+        <Card className="bg-gradient-to-br from-emerald/10 to-emerald/5 border-emerald/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Budget Status</CardTitle>
             <Wallet className="h-4 w-4 text-emerald" />
