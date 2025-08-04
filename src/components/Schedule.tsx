@@ -32,6 +32,7 @@ interface CalendarEvent {
   type: "study" | "exam" | "assignment" | "break" | "goal-task";
   priority: "low" | "medium" | "high";
   completed?: boolean;
+  repeat?: "none" | "daily" | "weekly" | "weekdays" | "weekends";
 }
 
 interface Goal {
@@ -61,7 +62,8 @@ const Schedule = () => {
     endTime: "",
     description: "",
     type: "study",
-    priority: "medium"
+    priority: "medium",
+    repeat: "none"
   });
 
   // Time slots from 6 AM to 11 PM in 1-hour intervals
@@ -518,6 +520,25 @@ const Schedule = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="repeat">Repeat Schedule</Label>
+              <Select
+                value={newEvent.repeat || "none"}
+                onValueChange={(value) => setNewEvent({ ...newEvent, repeat: value as CalendarEvent["repeat"] })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No repeat</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly (same day)</SelectItem>
+                  <SelectItem value="weekdays">Weekdays only</SelectItem>
+                  <SelectItem value="weekends">Weekends only</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">

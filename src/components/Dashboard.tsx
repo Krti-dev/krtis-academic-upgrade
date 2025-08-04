@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle, Calculator } from "lucide-react";
+import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle, Calculator, Heart, Wallet } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, Tooltip } from 'recharts';
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useMemo, useState } from "react";
@@ -83,12 +83,31 @@ const Dashboard = () => {
       };
     });
 
+    // Calculate average effectiveness
+    const allEffectivenessRatings = studySessions
+      .filter(s => s.effectiveness_rating !== null)
+      .map(s => s.effectiveness_rating || 0);
+    const avgEffectiveness = allEffectivenessRatings.length > 0 
+      ? allEffectivenessRatings.reduce((sum, rating) => sum + rating, 0) / allEffectivenessRatings.length
+      : 0;
+
+    // Calculate total hobby time (placeholder for now)
+    const totalHobbyTime = 0; // Will be updated with real data later
+
+    // Calculate total budget and spent (placeholder for now)
+    const totalBudget = 6800;
+    const totalSpent = 2875.5;
+
     return {
       attendanceStats,
       totalWeeklyHours,
       weeklyStudyData,
       subjectData,
-      performanceData: monthlyPerformance
+      performanceData: monthlyPerformance,
+      avgEffectiveness,
+      totalHobbyTime,
+      totalBudget,
+      totalSpent
     };
   }, [subjects, studySessions, attendance, getAttendanceStats]);
 
@@ -128,7 +147,7 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Study Hours</CardTitle>
@@ -139,6 +158,20 @@ const Dashboard = () => {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <TrendingUp className="h-4 w-4 text-success" />
               This week's total
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple/5 to-purple/10 border-purple/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-foreground">Avg. Effectiveness</CardTitle>
+            <Zap className="h-4 w-4 text-purple" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">{stats.avgEffectiveness.toFixed(1)}/10</div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Target className="h-4 w-4 text-purple" />
+              Study quality
             </div>
           </CardContent>
         </Card>
@@ -220,6 +253,34 @@ const Dashboard = () => {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Award className="h-4 w-4 text-warning" />
               Keep the streak going! 🔥
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-pink/5 to-pink/10 border-pink/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-foreground">Hobby Time</CardTitle>
+            <Heart className="h-4 w-4 text-pink" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">{stats.totalHobbyTime}h</div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Heart className="h-4 w-4 text-pink" />
+              This week
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-emerald/5 to-emerald/10 border-emerald/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-foreground">Budget Status</CardTitle>
+            <Wallet className="h-4 w-4 text-emerald" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">₹{(stats.totalBudget - stats.totalSpent).toFixed(0)}</div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <TrendingUp className="h-4 w-4 text-emerald" />
+              Remaining
             </div>
           </CardContent>
         </Card>

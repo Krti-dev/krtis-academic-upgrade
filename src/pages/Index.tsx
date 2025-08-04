@@ -7,7 +7,7 @@ import FocusTimer from "@/components/FocusTimer";
 import TimetableSetup from "@/components/TimetableSetup";
 import AttendanceDialog from "@/components/AttendanceDialog";
 import Settings from "@/components/Settings";
-import HobbyTracker from "@/components/HobbyTracker";
+import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
 import BudgetTracker from "@/components/BudgetTracker";
 import { Goals } from "@/components/Goals";
 import { Toaster } from "sonner";
@@ -77,7 +77,7 @@ const Index = () => {
       case "focus":
         return <FocusTimer />;
       case "hobbies":
-        return <HobbyTracker />;
+        return <HobbyTrackerWithTimer />;
       case "budget":
         return <BudgetTracker />;
       case "goals":
