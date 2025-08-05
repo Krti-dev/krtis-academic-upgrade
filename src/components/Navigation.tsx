@@ -25,13 +25,12 @@ const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "study", label: "Study Tracker", icon: BookOpen },
     { id: "schedule", label: "Schedule", icon: Calendar },
+    { id: "focus", label: "Focus Timer", icon: Brain },
     { id: "goals", label: "Goals", icon: Target },
-    { id: "focus", label: "Focus Timer", icon: Clock },
     { id: "hobbies", label: "Hobbies", icon: Heart },
     { id: "budget", label: "Budget Tracker", icon: Wallet },
-    { id: "ai", label: "AI Assistant", icon: Brain },
+    { id: "ai", label: "AI Assistant", icon: Clock },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Dashboard from "@/components/Dashboard";
-import StudyTracker from "@/components/StudyTracker";
+
 import Schedule from "@/components/Schedule";
 import FocusTimer from "@/components/FocusTimer";
 import TimetableSetup from "@/components/TimetableSetup";
@@ -70,8 +70,6 @@ const Index = () => {
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
-      case "study":
-        return <StudyTracker />;
       case "schedule":
         return <Schedule />;
       case "focus":

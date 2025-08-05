@@ -147,94 +147,97 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Study Hours</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.totalWeeklyHours.toFixed(1)} hours</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <TrendingUp className="h-4 w-4 text-success" />
+            <div className="text-2xl font-bold text-foreground mb-1">{stats.totalWeeklyHours.toFixed(1)}h</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3 text-success" />
               This week's total
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple/10 to-purple/5 border-purple/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Avg. Effectiveness</CardTitle>
             <Zap className="h-4 w-4 text-purple" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.avgEffectiveness.toFixed(1)}/10</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Target className="h-4 w-4 text-purple" />
+            <div className="text-2xl font-bold text-foreground mb-1">{(stats.avgEffectiveness * 20).toFixed(0)}%</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Target className="h-3 w-3 text-purple" />
               Study quality
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20 md:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Attendance by Subject</CardTitle>
             <CalendarDays className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground mb-4">{stats.attendanceStats.overall.percentage.toFixed(1)}% Overall</div>
-            <div className="space-y-3">
-              {subjects.map((subject) => {
+            <div className="text-2xl font-bold text-foreground mb-3">{stats.attendanceStats.overall.percentage.toFixed(1)}% Overall</div>
+            <div className="space-y-2">
+              {subjects.slice(0, 3).map((subject) => {
                 const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
                 return (
-                  <div key={subject.id} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
+                  <div key={subject.id} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <div 
-                          className="w-3 h-3 rounded-full"
+                          className="w-2 h-2 rounded-full"
                           style={{ backgroundColor: subject.color }}
                         />
                         <span className="font-medium">{subject.name}</span>
                       </div>
                       <span className="text-muted-foreground">
-                        {subjectStats.present}/{subjectStats.total} ({subjectStats.percentage.toFixed(1)}%)
+                        {subjectStats.percentage.toFixed(0)}%
                       </span>
                     </div>
                     <Progress 
                       value={subjectStats.percentage} 
-                      className="h-2"
+                      className="h-1"
                     />
                   </div>
                 );
               })}
               {subjects.length === 0 && (
-                <p className="text-sm text-muted-foreground">No subjects added yet</p>
+                <p className="text-xs text-muted-foreground">No subjects added yet</p>
+              )}
+              {subjects.length > 3 && (
+                <p className="text-xs text-muted-foreground mt-2">+{subjects.length - 3} more subjects</p>
               )}
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Subjects</CardTitle>
             <BookOpen className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{subjects.length}</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BookOpen className="h-4 w-4 text-info" />
+            <div className="text-2xl font-bold text-foreground mb-1">{subjects.length}</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <BookOpen className="h-3 w-3 text-info" />
               Active subjects
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Study Streak</CardTitle>
             <Award className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-2xl font-bold text-foreground mb-1">
               {(() => {
                 let streak = 0;
                 const today = new Date();
@@ -250,36 +253,50 @@ const Dashboard = () => {
                 return streak;
               })()} days
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Award className="h-4 w-4 text-warning" />
-              Keep the streak going! 🔥
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Award className="h-3 w-3 text-warning" />
+              Keep it going! 🔥
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-pink/10 to-pink/5 border-pink/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Hobby Time</CardTitle>
             <Heart className="h-4 w-4 text-pink" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{stats.totalHobbyTime}h</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Heart className="h-4 w-4 text-pink" />
-              This week
+            <div className="text-2xl font-bold text-foreground mb-1">
+              {(() => {
+                const hobbyData = JSON.parse(localStorage.getItem('hobbyTimers') || '[]');
+                const totalTime = hobbyData.reduce((sum: number, hobby: any) => sum + (hobby.totalTime || 0), 0);
+                return Math.floor(totalTime / 60);
+              })()}h
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Heart className="h-3 w-3 text-pink" />
+              Total logged
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-emerald/10 to-emerald/5 border-emerald/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-foreground">Budget Status</CardTitle>
             <Wallet className="h-4 w-4 text-emerald" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">₹{(stats.totalBudget - stats.totalSpent).toFixed(0)}</div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <TrendingUp className="h-4 w-4 text-emerald" />
+            <div className="text-2xl font-bold text-foreground mb-1">
+              {(() => {
+                const totalBudget = parseFloat(localStorage.getItem('totalBudget') || '0');
+                const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+                const totalSpent = expenses.reduce((sum: number, expense: any) => sum + expense.amount, 0);
+                const remaining = totalBudget - totalSpent;
+                return `₹${remaining.toFixed(0)}`;
+              })()}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3 text-emerald" />
               Remaining
             </div>
           </CardContent>

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Wallet, Plus, TrendingDown, TrendingUp, AlertTriangle, BarChart3, Activity, Settings } from "lucide-react";
 import { toast } from "sonner";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, PieChart, Pie, Cell } from "recharts";
 
 interface Expense {
   id: number;
@@ -282,65 +282,112 @@ const BudgetTrackerImproved = () => {
         </CardContent>
       </Card>
 
+      {/* Budget Categories and Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Donut Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Expense Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expenses.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categories.map(category => ({
+                        name: category,
+                        value: expenses
+                          .filter(expense => expense.category === category)
+                          .reduce((sum, expense) => sum + expense.amount, 0),
+                        color: category === 'Food' ? '#ef4444' : 
+                               category === 'Entertainment' ? '#3b82f6' :
+                               category === 'Education' ? '#10b981' :
+                               category === 'Transport' ? '#f59e0b' : '#6b7280'
+                      })).filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ₹${value.toFixed(0)}`}
+                    >
+                      {categories.map((category, index) => (
+                        <Cell key={`cell-${index}`} fill={
+                          category === 'Food' ? '#ef4444' : 
+                          category === 'Entertainment' ? '#3b82f6' :
+                          category === 'Education' ? '#10b981' :
+                          category === 'Transport' ? '#f59e0b' : '#6b7280'
+                        } />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `₹${value}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                No expenses to display
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Radar Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Budget Usage Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expenses.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={categories.map(category => ({
+                    category: category,
+                    spent: expenses
+                      .filter(expense => expense.category === category)
+                      .reduce((sum, expense) => sum + expense.amount, 0),
+                    budget: budgetLimits.find(b => b.category === category)?.limit || 1000,
+                    usage: Math.min(
+                      (expenses
+                        .filter(expense => expense.category === category)
+                        .reduce((sum, expense) => sum + expense.amount, 0) / 
+                       (budgetLimits.find(b => b.category === category)?.limit || 1000)) * 100,
+                      150
+                    )
+                  }))}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="category" />
+                    <PolarRadiusAxis angle={90} domain={[0, 150]} />
+                    <Radar 
+                      name="Budget Usage %" 
+                      dataKey="usage" 
+                      stroke="hsl(var(--primary))" 
+                      fill="hsl(var(--primary))" 
+                      fillOpacity={0.3} 
+                    />
+                    <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                No data to display
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Budget Categories */}
       {budgetLimits.some(limit => limit.limit > 0) && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Budget by Category
-              <div className="flex gap-2">
-                <Button
-                  variant={chartType === "line" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setChartType("line")}
-                >
-                  <BarChart3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={chartType === "radar" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setChartType("radar")}
-                >
-                  <Activity className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardTitle>
+            <CardTitle>Budget by Category</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Chart Section */}
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  {chartType === "line" ? (
-                    <LineChart data={budgetLimits.filter(budget => budget.limit > 0).map(budget => ({
-                      category: budget.category,
-                      spent: budget.spent,
-                      limit: budget.limit,
-                      remaining: budget.limit - budget.spent
-                    }))}>
-                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis dataKey="category" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="spent" stroke="hsl(var(--destructive))" strokeWidth={2} name="Spent" />
-                      <Line type="monotone" dataKey="limit" stroke="hsl(var(--primary))" strokeWidth={2} name="Budget Limit" />
-                    </LineChart>
-                  ) : (
-                    <RadarChart data={budgetLimits.filter(budget => budget.limit > 0).map(budget => ({
-                      category: budget.category,
-                      spent: budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0,
-                      limit: 100
-                    }))}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="category" />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                      <Radar name="Spent %" dataKey="spent" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.3} />
-                      <Tooltip />
-                    </RadarChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
 
               {/* Budget Bars */}
               {budgetLimits.filter(budget => budget.limit > 0).map((budget) => {

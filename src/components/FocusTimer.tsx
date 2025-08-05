@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Play, 
   Pause, 
@@ -13,16 +16,32 @@ import {
   Brain,
   Settings,
   Volume2,
-  VolumeX
+  VolumeX,
+  BookOpen,
+  TrendingUp,
+  CheckCircle,
+  Target,
+  Trophy
 } from "lucide-react";
 import { toast } from "sonner";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const FocusTimer = () => {
+  const { subjects, studySessions, addStudySession, loading } = useSupabaseData();
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isActive, setIsActive] = useState(false);
   const [mode, setMode] = useState<"focus" | "shortBreak" | "longBreak">("focus");
   const [session, setSession] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [currentTopic, setCurrentTopic] = useState("");
+  const [studyGoal, setStudyGoal] = useState(() => {
+    const saved = localStorage.getItem('dailyStudyGoal');
+    return saved ? parseInt(saved) : 360; // 6 hours in minutes
+  });
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [effectivenessRating, setEffectivenessRating] = useState(3);
 
   const modes = {
     focus: { duration: 25 * 60, label: "Focus Time", color: "primary", icon: Brain },
@@ -51,12 +70,28 @@ const FocusTimer = () => {
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
-  const handleTimerComplete = () => {
+  const handleTimerComplete = async () => {
     setIsActive(false);
     
     if (soundEnabled) {
-      // Play notification sound (you could add actual audio here)
       toast.success("Timer completed!");
+    }
+
+    // Save study session if it was a focus session and subject is selected
+    if (mode === "focus" && selectedSubject && startTime) {
+      try {
+        const duration = Math.floor((Date.now() - startTime.getTime()) / (1000 * 60));
+        await addStudySession({
+          subject_id: selectedSubject,
+          duration_minutes: duration,
+          topic: currentTopic || null,
+          effectiveness_rating: effectivenessRating,
+          date: new Date().toISOString().split('T')[0]
+        });
+        toast.success(`Study session saved! ${duration} minutes`);
+      } catch (error) {
+        toast.error("Failed to save study session");
+      }
     }
 
     if (mode === "focus") {
@@ -76,13 +111,22 @@ const FocusTimer = () => {
     setTimeLeft(modes[mode === "focus" ? (session % 4 === 0 ? "longBreak" : "shortBreak") : "focus"].duration);
   };
 
-  const formatTime = (seconds: number) => {
+  const formatTimeSeconds = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const toggleTimer = () => {
+    if (!isActive && mode === "focus" && !selectedSubject) {
+      toast.error("Please select a subject first!");
+      return;
+    }
+    
+    if (!isActive && mode === "focus") {
+      setStartTime(new Date());
+    }
+    
     setIsActive(!isActive);
     toast.info(isActive ? "Timer paused" : "Timer started");
   };
@@ -90,6 +134,7 @@ const FocusTimer = () => {
   const resetTimer = () => {
     setIsActive(false);
     setTimeLeft(currentMode.duration);
+    setStartTime(null);
     toast.info("Timer reset");
   };
 
@@ -99,12 +144,35 @@ const FocusTimer = () => {
     setIsActive(false);
   };
 
+  // Get today's study sessions
+  const todaysSessions = studySessions.filter(session => {
+    const today = new Date().toDateString();
+    return new Date(session.date).toDateString() === today;
+  });
+
+  const todaysStudyTime = todaysSessions.reduce((total, session) => total + session.duration_minutes, 0);
+  const progressPercentage = Math.min((todaysStudyTime / studyGoal) * 100, 100);
+
+  // Calculate subject-specific study time
+  const subjectStudyTime: { [key: string]: number } = {};
+  studySessions.forEach(session => {
+    if (session.subject_id) {
+      subjectStudyTime[session.subject_id] = (subjectStudyTime[session.subject_id] || 0) + session.duration_minutes;
+    }
+  });
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
   const Icon = currentMode.icon;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
-        <Clock className="h-6 w-6 text-primary" />
+        <Brain className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold">Focus Timer</h1>
       </div>
 
@@ -122,10 +190,42 @@ const FocusTimer = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Subject Selection for Focus Mode */}
+              {mode === "focus" && (
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject</Label>
+                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id}>
+                          {subject.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Topic Input for Active Focus Session */}
+              {mode === "focus" && isActive && (
+                <div className="space-y-2">
+                  <Label htmlFor="topic">Topic (Optional)</Label>
+                  <Input
+                    id="topic"
+                    placeholder="What are you studying?"
+                    value={currentTopic}
+                    onChange={(e) => setCurrentTopic(e.target.value)}
+                  />
+                </div>
+              )}
+
               {/* Timer Display */}
               <div className="text-center">
-                <div className="text-8xl md:text-9xl font-bold font-mono tracking-tighter">
-                  {formatTime(timeLeft)}
+                <div className="text-6xl md:text-8xl font-bold font-mono tracking-tighter">
+                  {formatTimeSeconds(timeLeft)}
                 </div>
                 <Progress value={progress} className="mt-4 h-3" />
               </div>
@@ -179,20 +279,55 @@ const FocusTimer = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Focus Sessions</span>
-                  <Badge variant="outline">{session - 1} / 8</Badge>
+                  <span>Study Goal</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsEditingGoal(!isEditingGoal)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {isEditingGoal ? "Save" : "Edit"}
+                  </Button>
                 </div>
-                <Progress value={((session - 1) / 8) * 100} className="h-2" />
+                {isEditingGoal ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={Math.floor(studyGoal / 60)}
+                      onChange={(e) => {
+                        const newGoal = parseInt(e.target.value) * 60 || 360;
+                        setStudyGoal(newGoal);
+                        localStorage.setItem('dailyStudyGoal', newGoal.toString());
+                      }}
+                      className="w-20 h-8"
+                      min="1"
+                      max="24"
+                    />
+                    <span className="text-sm">hours</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span>{formatTime(todaysStudyTime)} / {formatTime(studyGoal)}</span>
+                      <span>{Math.round(progressPercentage)}%</span>
+                    </div>
+                    <Progress value={progressPercentage} className="h-2" />
+                  </>
+                )}
               </div>
               
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Focus Time</span>
-                  <span className="font-medium">{(session - 1) * 25}m</span>
+                  <span>Sessions Today</span>
+                  <Badge variant="outline">{todaysSessions.length}</Badge>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Break Time</span>
-                  <span className="font-medium">{Math.floor((session - 1) * 6.25)}m</span>
+                  <span>Avg. Effectiveness</span>
+                  <span className="font-medium text-success">
+                    {todaysSessions.length > 0 
+                      ? Math.round((todaysSessions.reduce((sum, s) => sum + (s.effectiveness_rating || 3), 0) / todaysSessions.length) * 20)
+                      : 0}%
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -264,6 +399,41 @@ const FocusTimer = () => {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Study Goals & Subject Time */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="h-5 w-5" />
+                Study Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <h4 className="font-medium">Time per Subject</h4>
+                {subjects.map((subject) => {
+                  const totalTime = subjectStudyTime[subject.id] || 0;
+                  return (
+                    <div key={subject.id} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: subject.color }}
+                          />
+                          <span>{subject.name}</span>
+                        </div>
+                        <span className="font-medium">{formatTime(totalTime)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {subjects.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No subjects added yet</p>
+                )}
               </div>
             </CardContent>
           </Card>
