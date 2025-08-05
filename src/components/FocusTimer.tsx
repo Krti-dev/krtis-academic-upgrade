@@ -334,6 +334,51 @@ const FocusTimer = () => {
           </Card>
 
           {/* Quick Settings */}
+        <Card className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Trophy className="h-5 w-5" />
+              Study Streak
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-warning mb-2">
+              {(() => {
+                let streak = 0;
+                const today = new Date();
+                
+                for (let i = 0; i < 365; i++) { // Check up to 365 days
+                  const checkDate = new Date(today);
+                  checkDate.setDate(today.getDate() - i);
+                  const dateStr = checkDate.toISOString().split('T')[0];
+                  
+                  const hasStudied = studySessions.some(s => s.date === dateStr && s.duration_minutes >= 15);
+                  
+                  if (hasStudied) {
+                    streak++;
+                  } else if (i === 0) {
+                    // If today has no study, check if it's still early in the day
+                    const currentHour = new Date().getHours();
+                    if (currentHour < 6) {
+                      continue; // Don't break streak if it's very early morning
+                    } else {
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                }
+                
+                return streak;
+              })()} days
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Keep the streak alive! Study at least 15 minutes daily 🔥
+            </p>
+          </CardContent>
+        </Card>
+
+          {/* Settings */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -399,41 +444,6 @@ const FocusTimer = () => {
                     </Button>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Study Goals & Subject Time */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Target className="h-5 w-5" />
-                Study Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h4 className="font-medium">Time per Subject</h4>
-                {subjects.map((subject) => {
-                  const totalTime = subjectStudyTime[subject.id] || 0;
-                  return (
-                    <div key={subject.id} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: subject.color }}
-                          />
-                          <span>{subject.name}</span>
-                        </div>
-                        <span className="font-medium">{formatTime(totalTime)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-                {subjects.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No subjects added yet</p>
-                )}
               </div>
             </CardContent>
           </Card>
