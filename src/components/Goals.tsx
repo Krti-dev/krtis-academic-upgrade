@@ -296,14 +296,15 @@ export const Goals = () => {
             <div className="flex-1 flex items-center gap-2">
               <Input
                 key={`task-input-${task.id}`}
-                defaultValue={task.text}
-                onBlur={(e) => {
+                value={task.text}
+                onChange={(e) => {
                   if (onTaskUpdate) {
                     updateTask(tasks, task.id, { text: e.target.value }, onTaskUpdate);
                   }
                 }}
                 placeholder="Enter task..."
                 className="border-none p-0 h-auto focus-visible:ring-0"
+                autoFocus={!task.text}
               />
               <Button
                 size="sm"

@@ -413,26 +413,27 @@ const Schedule = () => {
 
       {/* Event Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-w-md max-h-[90vh]">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg">
               {editingEvent ? "Edit Event" : "Add New Event"}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+          <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-1">
+            <div className="space-y-1.5">
+              <Label htmlFor="title" className="text-sm">Title *</Label>
               <Input
                 id="title"
                 value={newEvent.title || ""}
                 onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                 placeholder="Enter event title"
+                className="h-8"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="goal">Link to Goal (Optional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="goal" className="text-sm">Link to Goal (Optional)</Label>
               <Select
                 value={newEvent.goalId || ""}
                 onValueChange={(value) => {
@@ -461,31 +462,33 @@ const Schedule = () => {
               </Select>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Start Time</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="startTime" className="text-sm">Start Time</Label>
                 <Input
                   id="startTime"
                   type="time"
                   value={newEvent.startTime || ""}
                   onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                  className="h-8"
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="endTime">End Time</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="endTime" className="text-sm">End Time</Label>
                 <Input
                   id="endTime"
                   type="time"
                   value={newEvent.endTime || ""}
                   onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                  className="h-8"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="type" className="text-sm">Type</Label>
                 <Select
                   value={newEvent.type || "study"}
                   onValueChange={(value) => setNewEvent({ ...newEvent, type: value as CalendarEvent["type"] })}
@@ -504,13 +507,13 @@ const Schedule = () => {
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="priority" className="text-sm">Priority</Label>
                 <Select
                   value={newEvent.priority || "medium"}
                   onValueChange={(value) => setNewEvent({ ...newEvent, priority: value as CalendarEvent["priority"] })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -522,13 +525,13 @@ const Schedule = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="repeat">Repeat Schedule</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="repeat" className="text-sm">Repeat Schedule</Label>
               <Select
                 value={newEvent.repeat || "none"}
                 onValueChange={(value) => setNewEvent({ ...newEvent, repeat: value as CalendarEvent["repeat"] })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -541,40 +544,42 @@ const Schedule = () => {
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="description" className="text-sm">Description</Label>
               <Textarea
                 id="description"
                 value={newEvent.description || ""}
                 onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                 placeholder="Add notes or description..."
-                rows={3}
+                rows={2}
+                className="text-sm"
               />
             </div>
+          </div>
             
-            <div className="flex gap-2 pt-4">
-              <Button onClick={handleSaveEvent} className="flex-1">
-                {editingEvent ? "Update Event" : "Add Event"}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsDialogOpen(false)}
-                className="flex-1"
+          <div className="flex gap-2 pt-3 border-t">
+            <Button onClick={handleSaveEvent} className="flex-1 h-8">
+              {editingEvent ? "Update Event" : "Add Event"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+              className="flex-1 h-8"
+            >
+              Cancel
+            </Button>
+            {editingEvent && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  handleDeleteEvent(editingEvent.id);
+                  setIsDialogOpen(false);
+                }}
+                className="h-8 px-3"
               >
-                Cancel
+                <Trash2 className="h-4 w-4" />
               </Button>
-              {editingEvent && (
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    handleDeleteEvent(editingEvent.id);
-                    setIsDialogOpen(false);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
