@@ -438,6 +438,25 @@ export const Goals = () => {
                 categoryColors[goal.category] || "bg-gray-50 border-gray-200 hover:bg-gray-100",
                 goal.completed && "opacity-75"
               )}
+              onClick={() => {
+                if (!goal.tasks || goal.tasks.length === 0) {
+                  // Add first task if none exist
+                  const newTask: Task = {
+                    id: Date.now().toString(),
+                    text: "",
+                    completed: false,
+                  };
+                  handleUpdateGoal(goal.id, { tasks: [newTask] });
+                } else {
+                  // Add new task
+                  const newTask: Task = {
+                    id: Date.now().toString(),
+                    text: "",
+                    completed: false,
+                  };
+                  handleUpdateGoal(goal.id, { tasks: [...goal.tasks, newTask] });
+                }
+              }}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -460,44 +479,53 @@ export const Goals = () => {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleUpdateGoal(goal.id, { completed: !goal.completed })}
-                    >
-                      {goal.completed ? <Circle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-                    </Button>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button size="sm" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-40 p-2">
-                        <div className="space-y-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => setEditingGoal(goal)}
-                          >
-                            <Edit2 className="h-3 w-3 mr-2" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="w-full justify-start text-red-600 hover:text-red-700"
-                            onClick={() => handleDeleteGoal(goal.id)}
-                          >
-                            <Trash2 className="h-3 w-3 mr-2" />
-                            Delete
-                          </Button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                     <Button
+                       size="sm"
+                       variant="ghost"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         handleUpdateGoal(goal.id, { completed: !goal.completed });
+                       }}
+                     >
+                       {goal.completed ? <Circle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                     </Button>
+                     <Popover>
+                       <PopoverTrigger asChild>
+                         <Button size="sm" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                           <MoreHorizontal className="h-4 w-4" />
+                         </Button>
+                       </PopoverTrigger>
+                       <PopoverContent className="w-40 p-2">
+                         <div className="space-y-1">
+                           <Button
+                             size="sm"
+                             variant="ghost"
+                             className="w-full justify-start"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               setEditingGoal(goal);
+                             }}
+                           >
+                             <Edit2 className="h-3 w-3 mr-2" />
+                             Edit
+                           </Button>
+                           <Button
+                             size="sm"
+                             variant="ghost"
+                             className="w-full justify-start text-red-600 hover:text-red-700"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               handleDeleteGoal(goal.id);
+                             }}
+                           >
+                             <Trash2 className="h-3 w-3 mr-2" />
+                             Delete
+                           </Button>
+                         </div>
+                       </PopoverContent>
+                     </Popover>
+                   </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -530,14 +558,17 @@ export const Goals = () => {
                         <p className="text-xs text-muted-foreground">
                           +{goal.tasks.length - 3} more tasks
                         </p>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="w-full text-xs"
-                          onClick={() => setEditingGoal(goal)}
-                        >
-                          View all tasks
-                        </Button>
+                         <Button 
+                           size="sm" 
+                           variant="ghost" 
+                           className="w-full text-xs"
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setEditingGoal(goal);
+                           }}
+                         >
+                           View all tasks
+                         </Button>
                       </div>
                     )}
                   </div>

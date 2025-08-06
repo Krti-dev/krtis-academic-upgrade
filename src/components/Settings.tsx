@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Settings as SettingsIcon, RefreshCw, Trash2, Calendar, AlertTriangle, RotateCcw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Settings as SettingsIcon, RefreshCw, Trash2, Calendar, AlertTriangle, RotateCcw, Sun, Moon, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +13,23 @@ import { supabase } from "@/integrations/supabase/client";
 const Settings = () => {
   const { clearTimetable, refetch } = useSupabaseData();
   const [clearing, setClearing] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.remove('light');
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   const handleClearTimetable = async () => {
     setClearing(true);
@@ -54,6 +73,40 @@ const Settings = () => {
           <p className="text-muted-foreground">Manage your Academia preferences</p>
         </div>
       </div>
+
+      {/* Theme Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Appearance
+          </CardTitle>
+          <CardDescription>
+            Customize your app's appearance and theme
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              <Label htmlFor="theme-toggle" className="cursor-pointer">
+                {isDarkMode ? 'Dark Mode' : 'Light Mode (Fairy Theme)'}
+              </Label>
+            </div>
+            <Switch
+              id="theme-toggle"
+              checked={isDarkMode}
+              onCheckedChange={setIsDarkMode}
+            />
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {isDarkMode 
+              ? "Dark mode provides a sleek, professional appearance for focused study sessions."
+              : "Light mode features whimsical fairy colors to inspire creativity and enthusiasm!"
+            }
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Timetable Settings */}
       <Card>
