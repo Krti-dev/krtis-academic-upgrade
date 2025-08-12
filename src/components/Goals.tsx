@@ -440,23 +440,8 @@ export const Goals = () => {
                 goal.completed && "opacity-75"
               )}
               onClick={() => {
-                if (!goal.tasks || goal.tasks.length === 0) {
-                  // Add first task if none exist
-                  const newTask: Task = {
-                    id: Date.now().toString(),
-                    text: "",
-                    completed: false,
-                  };
-                  handleUpdateGoal(goal.id, { tasks: [newTask] });
-                } else {
-                  // Add new task
-                  const newTask: Task = {
-                    id: Date.now().toString(),
-                    text: "",
-                    completed: false,
-                  };
-                  handleUpdateGoal(goal.id, { tasks: [...goal.tasks, newTask] });
-                }
+                // Open editor to add/view tasks instead of auto-adding a checkbox
+                setEditingGoal(goal);
               }}
             >
               <CardHeader className="pb-3">

@@ -102,15 +102,20 @@ const Schedule = () => {
 
       if (fetchError) throw fetchError;
 
-      // Parse existing tasks or create new array
-      let tasks = [];
+      // Parse existing tasks from description object { description, tasks }
+      let descriptionObj: { description: string; tasks: any[] } = { description: "", tasks: [] };
       try {
-        if (goalData.description) {
+        if (goalData?.description) {
           const parsed = JSON.parse(goalData.description);
-          tasks = Array.isArray(parsed) ? parsed : [];
+          if (parsed && typeof parsed === 'object') {
+            descriptionObj = {
+              description: parsed.description || "",
+              tasks: Array.isArray(parsed.tasks) ? parsed.tasks : []
+            };
+          }
         }
       } catch {
-        tasks = [];
+        descriptionObj = { description: "", tasks: [] };
       }
 
       // Add new task
@@ -119,12 +124,12 @@ const Schedule = () => {
         text: taskText,
         completed: false
       };
-      tasks.push(newTask);
+      descriptionObj.tasks.push(newTask);
 
-      // Update goal with new tasks
+      // Update goal with new tasks inside description object
       const { error: updateError } = await supabase
         .from('study_goals')
-        .update({ description: JSON.stringify(tasks) })
+        .update({ description: JSON.stringify(descriptionObj) })
         .eq('id', goalId);
 
       if (updateError) throw updateError;
@@ -367,7 +372,7 @@ const Schedule = () => {
                     return (
                       <div
                         key={`${date}-${time}`}
-                        className="p-1 border-r min-h-[60px] cursor-pointer hover:bg-muted/50 transition-colors relative flex-1"
+                        className="p-1 border-r min-h-[48px] cursor-pointer hover:bg-muted/50 transition-colors relative flex-1"
                         onClick={() => handleSlotClick(date, time)}
                         onDrop={(e) => handleDrop(e, date, time)}
                         onDragOver={handleDragOver}

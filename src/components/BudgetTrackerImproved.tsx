@@ -128,6 +128,25 @@ const BudgetTrackerImproved = () => {
     }
   };
 
+  const deleteExpense = (id: number) => {
+    setExpenses(expenses.filter((e) => e.id !== id));
+    toast.success("Expense deleted");
+  };
+
+  const resetAll = () => {
+    if (confirm('Are you sure you want to reset all budget data? This cannot be undone.')) {
+      setExpenses([]);
+      setBudgetLimits([
+        { category: "Food", limit: 0, spent: 0 },
+        { category: "Entertainment", limit: 0, spent: 0 },
+        { category: "Education", limit: 0, spent: 0 },
+        { category: "Transport", limit: 0, spent: 0 },
+      ]);
+      setTotalBudget(0);
+      toast.success('All budget data has been reset.');
+    }
+  };
+
   const getTotalSpent = () => {
     return expenses.reduce((total, expense) => total + expense.amount, 0);
   };
@@ -179,6 +198,9 @@ const BudgetTrackerImproved = () => {
             </div>
           </DialogContent>
         </Dialog>
+        <Button variant="destructive" className="ml-2" onClick={resetAll}>
+          Reset All
+        </Button>
       </div>
 
       {/* Overview Cards */}

@@ -176,46 +176,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20 md:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-foreground">Attendance by Subject</CardTitle>
-            <CalendarDays className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground mb-3">{stats.attendanceStats.overall.percentage.toFixed(1)}% Overall</div>
-            <div className="space-y-2">
-              {subjects.slice(0, 3).map((subject) => {
-                const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
-                return (
-                  <div key={subject.id} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: subject.color }}
-                        />
-                        <span className="font-medium">{subject.name}</span>
-                      </div>
-                      <span className="text-muted-foreground">
-                        {subjectStats.percentage.toFixed(0)}%
-                      </span>
-                    </div>
-                    <Progress 
-                      value={subjectStats.percentage} 
-                      className="h-1"
-                    />
-                  </div>
-                );
-              })}
-              {subjects.length === 0 && (
-                <p className="text-xs text-muted-foreground">No subjects added yet</p>
-              )}
-              {subjects.length > 3 && (
-                <p className="text-xs text-muted-foreground mt-2">+{subjects.length - 3} more subjects</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Attendance quick tile moved to Overview for a larger display */}
 
         <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
@@ -312,6 +273,38 @@ const Dashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          <Card className="bg-gradient-to-br from-success/5 to-success/10 border-success/20">
+            <CardHeader>
+              <CardTitle>Attendance Overview</CardTitle>
+              <CardDescription>Overall and per-subject attendance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground mb-4">
+                {stats.attendanceStats.overall.percentage.toFixed(1)}% Overall
+              </div>
+              <div className="space-y-3">
+                {subjects.map((subject) => {
+                  const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
+                  return (
+                    <div key={subject.id} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: subject.color }} />
+                          <span className="font-medium">{subject.name}</span>
+                        </div>
+                        <span className="text-muted-foreground">{subjectStats.present}/{subjectStats.total} • {subjectStats.percentage.toFixed(0)}%</span>
+                      </div>
+                      <Progress value={subjectStats.percentage} className="h-2" />
+                    </div>
+                  );
+                })}
+                {subjects.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No subjects added yet</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
