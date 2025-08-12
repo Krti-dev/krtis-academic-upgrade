@@ -284,7 +284,7 @@ const Dashboard = () => {
               </div>
               <div className="space-y-3">
                 {subjects.map((subject) => {
-                  const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
+                  const subjectStats = (stats.attendanceStats.subjects.find((s: any) => s.subject.id === subject.id)) || { present: 0, total: 0, percentage: 0 };
                   return (
                     <div key={subject.id} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
@@ -459,16 +459,13 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={Object.entries(stats.attendanceStats.subjects).map(([subjectId, stats]) => {
-                    const subject = subjects.find(s => s.id === subjectId);
-                    return {
-                      name: subject?.name || 'Unknown',
-                      percentage: stats.percentage,
-                      present: stats.present,
-                      absent: stats.total - stats.present,
-                      color: subject?.color || '#3B82F6'
-                    };
-                  })}>
+                  <BarChart data={stats.attendanceStats.subjects.map((s: any) => ({
+                    name: s.subject.name,
+                    percentage: s.percentage,
+                    present: s.present,
+                    absent: s.total - s.present,
+                    color: s.subject.color || '#3B82F6'
+                  }))}>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
                     <YAxis domain={[0, 100]} />
@@ -488,7 +485,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {subjects.map((subject) => {
-                  const subjectStats = stats.attendanceStats.subjects[subject.id] || { present: 0, total: 0, percentage: 0 };
+                  const subjectStats = (stats.attendanceStats.subjects.find((s: any) => s.subject.id === subject.id)) || { present: 0, total: 0, percentage: 0 };
                   const getMarksForPercentage = (percentage: number) => {
                     if (percentage >= 95) return 5;
                     if (percentage >= 90) return 4;

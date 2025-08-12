@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
@@ -95,14 +95,16 @@ export const Goals = () => {
       if (error) throw error;
       
       // Transform data to include tasks and color from description JSON
-      const goalsWithTasks = data?.map(goal => {
+      const goalsWithTasks = (data || []).map((goal) => {
         const meta = parseDescription(goal.description);
         return {
           ...goal,
           tasks: meta.tasks,
           tileColor: meta.color || 'primary',
         };
-      }) || [];
+      });
+
+      setGoals(goalsWithTasks);
     } catch (error) {
       console.error('Error fetching goals:', error);
       toast({
@@ -357,6 +359,7 @@ export const Goals = () => {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Create New Goal</DialogTitle>
+              <DialogDescription>Set a title, color and add tasks for this goal.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Input
@@ -577,6 +580,7 @@ export const Goals = () => {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Goal</DialogTitle>
+              <DialogDescription>Update the title, color, category and tasks.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Input
