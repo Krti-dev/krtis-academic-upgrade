@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 263 70% 50%;
+    --primary: 275 85% 60%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 3.7% 15.9%;
@@ -34,7 +34,7 @@ All colors MUST be HSL.
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 263 70% 50%;
+    --ring: 275 85% 60%;
 
     --radius: 0.75rem;
 
@@ -65,7 +65,7 @@ All colors MUST be HSL.
     --cyan-foreground: 189 15% 15%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(263 70% 50%), hsl(270 70% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(275 85% 60%), hsl(300 80% 60%));
     --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 46%));
     --gradient-warning: linear-gradient(135deg, hsl(48 96% 53%), hsl(48 96% 63%));
     

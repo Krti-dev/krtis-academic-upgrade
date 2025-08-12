@@ -11,6 +11,7 @@ import Settings from "@/components/Settings";
 import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
 import BudgetTrackerImproved from "@/components/BudgetTrackerImproved";
 import { Goals } from "@/components/Goals";
+import AIAssistant from "@/components/AIAssistant";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 
@@ -84,7 +85,7 @@ const Index = () => {
       case "goals":
         return <Goals />;
       case "ai":
-        return <div className="p-6">AI Assistant feature coming soon!</div>;
+        return <AIAssistant />;
       case "settings":
         return <Settings />;
       default:

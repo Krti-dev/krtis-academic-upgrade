@@ -350,7 +350,7 @@ const Schedule = () => {
             })}
           </div>
 
-          <div className="max-h-[600px] overflow-y-auto relative">
+          <div className="relative">
             {timeSlots.map((time) => {
               const currentTime = new Date();
               const currentTimeString = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
@@ -372,7 +372,7 @@ const Schedule = () => {
                     return (
                       <div
                         key={`${date}-${time}`}
-                        className="p-1 border-r min-h-[48px] cursor-pointer hover:bg-muted/50 transition-colors relative flex-1"
+                        className="p-1 border-r min-h-[40px] cursor-pointer hover:bg-muted/50 transition-colors relative flex-1"
                         onClick={() => handleSlotClick(date, time)}
                         onDrop={(e) => handleDrop(e, date, time)}
                         onDragOver={handleDragOver}

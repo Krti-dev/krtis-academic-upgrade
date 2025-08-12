@@ -2,24 +2,19 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Plus, 
   Target, 
-  Calendar as CalendarIcon, 
-  Flag, 
   Edit2, 
   Trash2, 
   CheckCircle2,
   Circle,
-  MoreHorizontal,
-  Search
+  MoreHorizontal
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -36,6 +31,7 @@ interface Goal {
   completed: boolean;
   created_at: string;
   tasks?: Task[];
+  tileColor?: string;
 }
 
 interface Task {
@@ -60,17 +56,28 @@ const categoryBadgeColors: Record<string, string> = {
   financial: "bg-warning/20 text-warning",
 };
 
+const tileColorClasses: Record<string, string> = {
+  primary: "bg-primary/10 border-primary/20 hover:bg-primary/15",
+  success: "bg-success/10 border-success/20 hover:bg-success/15",
+  info: "bg-info/10 border-info/20 hover:bg-info/15",
+  warning: "bg-warning/10 border-warning/20 hover:bg-warning/15",
+  pink: "bg-pink/10 border-pink/20 hover:bg-pink/15",
+  emerald: "bg-emerald/10 border-emerald/20 hover:bg-emerald/15",
+  orange: "bg-orange/10 border-orange/20 hover:bg-orange/15",
+  cyan: "bg-cyan/10 border-cyan/20 hover:bg-cyan/15",
+  purple: "bg-purple/10 border-purple/20 hover:bg-purple/15",
+};
+
 export const Goals = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [newGoal, setNewGoal] = useState({
     title: "",
-    description: "",
     category: "academic",
-    target_date: undefined as Date | undefined,
     tasks: [] as Task[],
+    tileColor: "primary" as string,
   });
   const { toast } = useToast();
 
@@ -87,13 +94,15 @@ export const Goals = () => {
 
       if (error) throw error;
       
-      // Transform data to include tasks (for now, parse from description if JSON format)
-      const goalsWithTasks = data?.map(goal => ({
-        ...goal,
-        tasks: tryParseTasksFromDescription(goal.description)
-      })) || [];
-      
-      setGoals(goalsWithTasks);
+      // Transform data to include tasks and color from description JSON
+      const goalsWithTasks = data?.map(goal => {
+        const meta = parseDescription(goal.description);
+        return {
+          ...goal,
+          tasks: meta.tasks,
+          tileColor: meta.color || 'primary',
+        };
+      }) || [];
     } catch (error) {
       console.error('Error fetching goals:', error);
       toast({
@@ -104,21 +113,21 @@ export const Goals = () => {
     }
   };
 
-  const tryParseTasksFromDescription = (description: string | null): Task[] => {
-    if (!description) return [];
+  const parseDescription = (description: string | null): { tasks: Task[]; color?: string } => {
+    if (!description) return { tasks: [], color: 'primary' };
     try {
       const parsed = JSON.parse(description);
-      return Array.isArray(parsed.tasks) ? parsed.tasks : [];
+      return {
+        tasks: Array.isArray(parsed.tasks) ? parsed.tasks as Task[] : [],
+        color: parsed.color || 'primary',
+      };
     } catch {
-      return [];
+      return { tasks: [], color: 'primary' };
     }
   };
 
-  const createTasksDescription = (description: string, tasks: Task[]) => {
-    return JSON.stringify({
-      description,
-      tasks
-    });
+  const buildDescription = (tasks: Task[], color?: string) => {
+    return JSON.stringify({ tasks, color: color || 'primary' });
   };
 
   const handleCreateGoal = async () => {
@@ -127,9 +136,8 @@ export const Goals = () => {
     try {
       const goalData = {
         title: newGoal.title,
-        description: createTasksDescription(newGoal.description, newGoal.tasks),
+        description: buildDescription(newGoal.tasks, newGoal.tileColor),
         category: newGoal.category,
-        target_date: newGoal.target_date ? format(newGoal.target_date, 'yyyy-MM-dd') : null,
         completed: false,
       };
 
@@ -146,10 +154,9 @@ export const Goals = () => {
 
       setNewGoal({
         title: "",
-        description: "",
         category: "academic",
-        target_date: undefined,
         tasks: [],
+        tileColor: 'primary',
       });
       setIsCreateDialogOpen(false);
       fetchGoals();
@@ -165,15 +172,15 @@ export const Goals = () => {
 
   const handleUpdateGoal = async (goalId: string, updates: Partial<Goal>) => {
     try {
+      const goal = goals.find(g => g.id === goalId);
+      const meta = parseDescription(goal?.description || null);
+      const mergedTasks = updates.tasks ? updates.tasks : (goal?.tasks || meta.tasks);
+      const mergedColor = updates.tileColor ? updates.tileColor : (goal?.tileColor || meta.color || 'primary');
+
       const updateData: any = { ...updates };
-      
-      if (updates.tasks) {
-        const goal = goals.find(g => g.id === goalId);
-        const description = goal?.description ? 
-          JSON.parse(goal.description).description || "" : "";
-        updateData.description = createTasksDescription(description, updates.tasks);
-        delete updateData.tasks;
-      }
+      updateData.description = buildDescription(mergedTasks || [], mergedColor);
+      delete updateData.tasks;
+      delete updateData.tileColor;
 
       const { error } = await supabase
         .from('study_goals')
@@ -247,10 +254,7 @@ export const Goals = () => {
     setTasks(tasks.filter(task => task.id !== taskId));
   };
 
-  const filteredGoals = goals.filter(goal =>
-    goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    goal.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredGoals = goals;
 
   const TasksList = ({ 
     tasks, 
@@ -360,12 +364,6 @@ export const Goals = () => {
                 value={newGoal.title}
                 onChange={(e) => setNewGoal(prev => ({ ...prev, title: e.target.value }))}
               />
-              <Textarea
-                placeholder="Description (optional)..."
-                value={newGoal.description}
-                onChange={(e) => setNewGoal(prev => ({ ...prev, description: e.target.value }))}
-                className="min-h-20"
-              />
               <Select value={newGoal.category} onValueChange={(value) => setNewGoal(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -378,22 +376,26 @@ export const Goals = () => {
                   <SelectItem value="financial">Financial</SelectItem>
                 </SelectContent>
               </Select>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="h-4 w-4 mr-2" />
-                    {newGoal.target_date ? format(newGoal.target_date, 'PPP') : 'Target date (optional)'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={newGoal.target_date}
-                    onSelect={(date) => setNewGoal(prev => ({ ...prev, target_date: date }))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">Tile color</h4>
+                <Select value={newGoal.tileColor} onValueChange={(value) => setNewGoal(prev => ({ ...prev, tileColor: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">Primary</SelectItem>
+                    <SelectItem value="success">Green</SelectItem>
+                    <SelectItem value="info">Blue</SelectItem>
+                    <SelectItem value="warning">Yellow</SelectItem>
+                    <SelectItem value="pink">Pink</SelectItem>
+                    <SelectItem value="emerald">Emerald</SelectItem>
+                    <SelectItem value="orange">Orange</SelectItem>
+                    <SelectItem value="cyan">Cyan</SelectItem>
+                    <SelectItem value="purple">Purple</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div>
                 <h4 className="text-sm font-medium mb-2">Tasks</h4>
@@ -413,16 +415,6 @@ export const Goals = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search goals..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
 
       {/* Goals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -432,18 +424,18 @@ export const Goals = () => {
           const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
           return (
-            <Card 
-              key={goal.id} 
-              className={cn(
-                "cursor-pointer transition-all duration-200 hover:shadow-md",
-                categoryColors[goal.category] || "bg-gray-50 border-gray-200 hover:bg-gray-100",
-                goal.completed && "opacity-75"
-              )}
-              onClick={() => {
-                // Open editor to add/view tasks instead of auto-adding a checkbox
-                setEditingGoal(goal);
-              }}
-            >
+              <Card 
+                key={goal.id} 
+                className={cn(
+                  "cursor-pointer transition-all duration-200 hover:shadow-md",
+                  goal.tileColor ? (tileColorClasses[goal.tileColor] || tileColorClasses.primary) : (categoryColors[goal.category] || tileColorClasses.primary),
+                  goal.completed && "opacity-75"
+                )}
+                onClick={() => {
+                  // Open editor to add/view tasks instead of auto-adding a checkbox
+                  setEditingGoal(goal);
+                }}
+              >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -515,12 +507,6 @@ export const Goals = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                {goal.target_date && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-                    <CalendarIcon className="h-3 w-3" />
-                    Due {format(new Date(goal.target_date), 'MMM dd, yyyy')}
-                  </div>
-                )}
                 
                 {goal.tasks && goal.tasks.length > 0 && (
                   <div className="space-y-2">
@@ -560,15 +546,9 @@ export const Goals = () => {
                   </div>
                 )}
 
-                {(!goal.tasks || goal.tasks.length === 0) && goal.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {(() => {
-                      try {
-                        return JSON.parse(goal.description).description || goal.description;
-                      } catch {
-                        return goal.description;
-                      }
-                    })()}
+                {(!goal.tasks || goal.tasks.length === 0) && (
+                  <p className="text-sm text-muted-foreground">
+                    No tasks yet. Click the card to add tasks.
                   </p>
                 )}
               </CardContent>
@@ -577,19 +557,17 @@ export const Goals = () => {
         })}
       </div>
 
-      {filteredGoals.length === 0 && (
+      {goals.length === 0 && (
         <div className="text-center py-12">
           <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No goals found</h3>
+          <h3 className="text-lg font-medium mb-2">No goals yet</h3>
           <p className="text-muted-foreground mb-4">
-            {searchTerm ? "Try adjusting your search terms" : "Create your first goal to get started!"}
+            Create your first goal to get started!
           </p>
-          {!searchTerm && (
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Goal
-            </Button>
-          )}
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Goal
+          </Button>
         </div>
       )}
 
@@ -606,19 +584,28 @@ export const Goals = () => {
                 value={editingGoal.title}
                 onChange={(e) => setEditingGoal(prev => prev ? { ...prev, title: e.target.value } : null)}
               />
-              <Textarea
-                placeholder="Description (optional)..."
-                value={JSON.parse(editingGoal.description || '{}').description || ''}
-                onChange={(e) => setEditingGoal(prev => {
-                  if (!prev) return null;
-                  const parsed = JSON.parse(prev.description || '{}');
-                  return {
-                    ...prev,
-                    description: JSON.stringify({ ...parsed, description: e.target.value })
-                  };
-                })}
-                className="min-h-20"
-              />
+              <div>
+                <h4 className="text-sm font-medium mb-2">Tile color</h4>
+                <Select 
+                  value={editingGoal.tileColor || 'primary'} 
+                  onValueChange={(value) => setEditingGoal(prev => prev ? { ...prev, tileColor: value } : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">Primary</SelectItem>
+                    <SelectItem value="success">Green</SelectItem>
+                    <SelectItem value="info">Blue</SelectItem>
+                    <SelectItem value="warning">Yellow</SelectItem>
+                    <SelectItem value="pink">Pink</SelectItem>
+                    <SelectItem value="emerald">Emerald</SelectItem>
+                    <SelectItem value="orange">Orange</SelectItem>
+                    <SelectItem value="cyan">Cyan</SelectItem>
+                    <SelectItem value="purple">Purple</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Select 
                 value={editingGoal.category} 
                 onValueChange={(value) => setEditingGoal(prev => prev ? { ...prev, category: value } : null)}
