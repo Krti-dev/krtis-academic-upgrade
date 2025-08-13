@@ -301,7 +301,6 @@ export const Goals = () => {
           {editable ? (
             <div className="flex-1 flex items-center gap-2">
               <Input
-                key={`task-input-${task.id}`}
                 value={task.text}
                 onChange={(e) => {
                   if (onTaskUpdate) {
@@ -309,13 +308,13 @@ export const Goals = () => {
                   }
                 }}
                 placeholder="Enter task..."
-                className="border-none p-0 h-auto focus-visible:ring-0"
-                autoFocus={!task.text}
+                className="flex-1 border-0 bg-transparent p-1 h-8 text-sm focus-visible:ring-1 focus-visible:ring-ring"
               />
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => onTaskUpdate && removeTask(tasks, task.id, onTaskUpdate)}
+                className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
