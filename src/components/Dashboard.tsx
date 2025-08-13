@@ -314,10 +314,33 @@ const Dashboard = () => {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={stats.weeklyStudyData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Area type="monotone" dataKey="hours" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis 
+                      dataKey="day" 
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        color: 'hsl(var(--popover-foreground))'
+                      }}
+                      formatter={(value: number) => [`${value}h`, 'Study Hours']}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="hours" 
+                      stroke="hsl(var(--primary))" 
+                      fill="hsl(var(--primary))" 
+                      fillOpacity={0.2}
+                      strokeWidth={2}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -326,33 +349,65 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Subject Distribution</CardTitle>
-                <CardDescription>Hours spent on each subject</CardDescription>
+                <CardDescription>Study time breakdown by subject</CardDescription>
               </CardHeader>
               <CardContent>
-                {stats.subjectData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={stats.subjectData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="hours"
-                        label={({ name, hours }) => `${name}: ${hours}h`}
-                      >
-                        {stats.subjectData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                {subjects.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <BarChart data={subjects.map(subject => {
+                        const subjectSessions = studySessions.filter(s => s.subject_id === subject.id);
+                        const totalHours = subjectSessions.reduce((sum, s) => sum + s.duration_minutes, 0) / 60;
+                        const attendanceStats = stats.attendanceStats.subjects.find((s: any) => s.subject.id === subject.id);
+                        return {
+                          name: subject.name.length > 8 ? subject.name.substring(0, 8) + '...' : subject.name,
+                          hours: Number(totalHours.toFixed(1)),
+                          attendance: attendanceStats ? attendanceStats.percentage : 0,
+                          color: subject.color
+                        };
+                      })}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={12}
+                        />
+                        <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={12}
+                        />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            color: 'hsl(var(--popover-foreground))'
+                          }}
+                          formatter={(value: number, name: string) => [
+                            name === 'hours' ? `${value}h` : `${value}%`,
+                            name === 'hours' ? 'Study Hours' : 'Attendance'
+                          ]}
+                        />
+                        <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="attendance" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div className="flex justify-center gap-6 mt-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded bg-primary"></div>
+                        <span className="text-muted-foreground">Study Hours</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded bg-success"></div>
+                        <span className="text-muted-foreground">Attendance %</span>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-[300px] text-center">
                     <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-2">No study sessions recorded yet</p>
-                    <p className="text-sm text-muted-foreground">Start tracking your study hours to see subject distribution</p>
+                    <p className="text-muted-foreground mb-2">Add subjects to see distribution</p>
+                    <p className="text-sm text-muted-foreground">Your study hours and attendance will be visualized here</p>
                   </div>
                 )}
               </CardContent>
@@ -367,10 +422,34 @@ const Dashboard = () => {
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={stats.performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis dataKey="month" />
-                  <YAxis domain={[0, 100]} />
-                  <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    domain={[0, 100]} 
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      color: 'hsl(var(--popover-foreground))'
+                    }}
+                    formatter={(value: number) => [`${value}%`, 'Performance Score']}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8, fill: 'hsl(var(--primary))' }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>

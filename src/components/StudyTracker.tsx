@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calculator, BookOpen, Target, BarChart3, TrendingUp } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const gradeOptions = [
@@ -110,22 +110,124 @@ const StudyTracker = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {catChartData.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={catChartData}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis dataKey="subject" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip 
-                    formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name === 'catPercent' ? 'CAT Marks' : name === 'internalMarks' ? 'Internal Marks' : 'Attendance']}
-                  />
-                  <Line type="monotone" dataKey="catPercent" stroke="hsl(var(--info))" strokeWidth={2} name="CAT Marks" />
-                  <Line type="monotone" dataKey="internalMarks" stroke="hsl(var(--primary))" strokeWidth={2} name="Internal Marks" />
-                  <Line type="monotone" dataKey="attendance" stroke="hsl(var(--success))" strokeWidth={2} name="Attendance" />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Performance Gauge Charts */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Performance Gauges</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* CAT Performance Gauge */}
+                    <div className="text-center">
+                      <ResponsiveContainer width="100%" height={160}>
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { value: (catChartData.reduce((sum, d) => sum + d.catPercent, 0) / catChartData.length), fill: 'hsl(var(--info))' },
+                              { value: 100 - (catChartData.reduce((sum, d) => sum + d.catPercent, 0) / catChartData.length), fill: 'hsl(var(--muted))' }
+                            ]}
+                            cx="50%"
+                            cy="50%"
+                            startAngle={180}
+                            endAngle={0}
+                            innerRadius={50}
+                            outerRadius={70}
+                            dataKey="value"
+                          >
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="text-xl font-bold text-info">
+                        {(catChartData.reduce((sum, d) => sum + d.catPercent, 0) / catChartData.length).toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">CAT Average</div>
+                    </div>
+                    
+                    {/* Internal Marks Gauge */}
+                    <div className="text-center">
+                      <ResponsiveContainer width="100%" height={160}>
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { value: (catChartData.reduce((sum, d) => sum + d.internalMarks, 0) / catChartData.length), fill: 'hsl(var(--primary))' },
+                              { value: 100 - (catChartData.reduce((sum, d) => sum + d.internalMarks, 0) / catChartData.length), fill: 'hsl(var(--muted))' }
+                            ]}
+                            cx="50%"
+                            cy="50%"
+                            startAngle={180}
+                            endAngle={0}
+                            innerRadius={50}
+                            outerRadius={70}
+                            dataKey="value"
+                          >
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="text-xl font-bold text-primary">
+                        {(catChartData.reduce((sum, d) => sum + d.internalMarks, 0) / catChartData.length).toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">Internal Marks</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Subject Performance Chart */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Subject Performance</h3>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={catChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                      <XAxis 
+                        dataKey="subject" 
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={11}
+                      />
+                      <YAxis 
+                        domain={[0, 100]} 
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={11}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          color: 'hsl(var(--popover-foreground))'
+                        }}
+                        formatter={(value: number, name: string) => [
+                          `${value.toFixed(1)}%`, 
+                          name === 'catPercent' ? 'CAT Marks' : name === 'internalMarks' ? 'Internal Marks' : 'Attendance'
+                        ]}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="catPercent" 
+                        stroke="hsl(var(--info))" 
+                        strokeWidth={2} 
+                        name="CAT Marks"
+                        dot={{ fill: 'hsl(var(--info))', strokeWidth: 2, r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="internalMarks" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2} 
+                        name="Internal Marks"
+                        dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="attendance" 
+                        stroke="hsl(var(--success))" 
+                        strokeWidth={2} 
+                        name="Attendance"
+                        dot={{ fill: 'hsl(var(--success))', strokeWidth: 2, r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-info">
                     {(catChartData.reduce((sum, d) => sum + d.catPercent, 0) / catChartData.length).toFixed(1)}%
@@ -145,7 +247,7 @@ const StudyTracker = () => {
                   <div className="text-sm text-muted-foreground">Avg Attendance</div>
                 </div>
               </div>
-            </>
+            </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               Add subjects and CAT marks to see your performance visualization
