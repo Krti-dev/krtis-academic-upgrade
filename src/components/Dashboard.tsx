@@ -324,14 +324,34 @@ const Dashboard = () => {
                       stroke="hsl(var(--muted-foreground))"
                       fontSize={12}
                     />
-                    <Tooltip 
+                     <Tooltip 
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        color: 'hsl(var(--popover-foreground))'
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
                       }}
-                      formatter={(value: number) => [`${value}h`, 'Study Hours']}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload[0]) {
+                          return (
+                            <div 
+                              className="rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                              style={{ 
+                                backgroundColor: 'hsl(var(--primary))',
+                                color: 'white',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              <div>{label}</div>
+                              <div className="text-xs opacity-90">
+                                Study Hours: {payload[0].value}h
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Area 
                       type="monotone" 
@@ -376,18 +396,39 @@ const Dashboard = () => {
                           stroke="hsl(var(--muted-foreground))"
                           fontSize={12}
                         />
-                        <Tooltip 
+                         <Tooltip 
                           contentStyle={{
-                            backgroundColor: 'hsl(var(--popover))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            color: 'hsl(var(--popover-foreground))'
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            borderRadius: '12px',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
                           }}
-                          formatter={(value: number, name: string) => [
-                            name === 'hours' ? `${value}h` : `${value}%`,
-                            name === 'hours' ? 'Study Hours' : 'Attendance'
-                          ]}
-                        />
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload[0]) {
+                              const data = payload[0].payload;
+                              return (
+                                <div 
+                                  className="rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                                  style={{ 
+                                    backgroundColor: data.color || 'hsl(var(--primary))',
+                                    color: 'white',
+                                    fontSize: '14px',
+                                    fontWeight: '500'
+                                  }}
+                                >
+                                  <div className="font-semibold">{data.name}</div>
+                                  <div className="text-xs opacity-90 mt-1">
+                                    Study Hours: {payload[0].value}h
+                                  </div>
+                                  <div className="text-xs opacity-90">
+                                    Attendance: {Math.round(data.attendance)}%
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                         />
                         <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="attendance" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
                       </BarChart>
@@ -435,12 +476,32 @@ const Dashboard = () => {
                   />
                   <Tooltip 
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      color: 'hsl(var(--popover-foreground))'
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
                     }}
-                    formatter={(value: number) => [`${value}%`, 'Performance Score']}
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload[0]) {
+                        return (
+                          <div 
+                            className="rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                            style={{ 
+                              backgroundColor: 'hsl(var(--primary))',
+                              color: 'white',
+                              fontSize: '14px',
+                              fontWeight: '500'
+                            }}
+                          >
+                            <div>{label}</div>
+                            <div className="text-xs opacity-90">
+                              Performance: {payload[0].value}%
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
                   />
                   <Line 
                     type="monotone" 
@@ -525,7 +586,37 @@ const Dashboard = () => {
                       dataKey="value"
                       label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
                     />
-                    <Tooltip />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                        padding: '12px 16px'
+                      }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload[0]) {
+                          const data = payload[0];
+                          return (
+                            <div 
+                              className="rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                              style={{ 
+                                backgroundColor: data.color,
+                                color: 'white',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              <div>{data.name}: {data.value}</div>
+                              <div className="text-xs opacity-90">
+                                {((data.value / stats.attendanceStats.overall.total) * 100).toFixed(1)}%
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -548,7 +639,37 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
                     <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                        padding: '12px 16px'
+                      }}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload[0]) {
+                          const data = payload[0];
+                          return (
+                            <div 
+                              className="rounded-xl px-3 py-2 shadow-lg border border-border/50"
+                              style={{ 
+                                backgroundColor: data.color || 'hsl(var(--primary))',
+                                color: 'white',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              <div>{label}</div>
+                              <div className="text-xs opacity-90">
+                                Attendance: {data.value}%
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
                     <Bar dataKey="percentage" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>

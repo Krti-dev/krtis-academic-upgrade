@@ -303,18 +303,24 @@ export const Goals = () => {
               <Input
                 value={task.text}
                 onChange={(e) => {
+                  // Use a timeout to prevent losing focus on each keystroke
                   if (onTaskUpdate) {
-                    updateTask(tasks, task.id, { text: e.target.value }, onTaskUpdate);
+                    const newValue = e.target.value;
+                    // Update local state immediately for responsive UI
+                    const updatedTasks = tasks.map(t => 
+                      t.id === task.id ? { ...t, text: newValue } : t
+                    );
+                    onTaskUpdate(updatedTasks);
                   }
                 }}
                 placeholder="Enter task..."
-                className="flex-1 border-0 bg-transparent p-1 h-8 text-sm focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex-1 border-0 bg-transparent p-1 h-8 text-sm focus-visible:ring-1 focus-visible:ring-ring rounded-md"
               />
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => onTaskUpdate && removeTask(tasks, task.id, onTaskUpdate)}
-                className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive rounded-md"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
