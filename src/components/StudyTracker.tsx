@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, BookOpen, Target } from "lucide-react";
-import { useState } from "react";
+import { Calculator, BookOpen, Target, BarChart3, TrendingUp } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const gradeOptions = [
   { label: "O (10)", value: 10 },
@@ -17,25 +18,81 @@ const gradeOptions = [
 ];
 
 const StudyTracker = () => {
-  // CAT Marks Calculator
-  const [catMarks, setCatMarks] = useState<{ scored: number; total: number }[]>([
-    { scored: 0, total: 25 },
-  ]);
-  const catPercent = useMemo(() => {
-    const sumScored = catMarks.reduce((s, m) => s + (Number(m.scored) || 0), 0);
-    const sumTotal = catMarks.reduce((s, m) => s + (Number(m.total) || 0), 0);
-    return sumTotal > 0 ? (sumScored / sumTotal) * 100 : 0;
-  }, [catMarks]);
+  const { subjects: dbSubjects, attendance, loading } = useSupabaseData();
+  
+  // CAT Marks per subject
+  const [subjectCATMarks, setSubjectCATMarks] = useState<{[key: string]: {scored: number; total: number}[]}>({});
+  
+  // SGPA inputs for each semester
+  const [semesterSGPAs, setSemesterSGPAs] = useState<number[]>([]);
+  
+  // Initialize CAT marks for each subject
+  useEffect(() => {
+    if (dbSubjects.length > 0) {
+      const initialCATMarks: {[key: string]: {scored: number; total: number}[]} = {};
+      dbSubjects.forEach(subject => {
+        if (!subjectCATMarks[subject.id]) {
+          initialCATMarks[subject.id] = [{ scored: 0, total: 25 }];
+        }
+      });
+      setSubjectCATMarks(prev => ({ ...prev, ...initialCATMarks }));
+    }
+  }, [dbSubjects]);
 
-  // CGPA Calculator
-  const [subjects, setSubjects] = useState<{ credits: number; grade: number }[]>([
-    { credits: 3, grade: 10 },
-  ]);
+  // Calculate CAT percentage for each subject
+  const getSubjectCATPercent = (subjectId: string) => {
+    const marks = subjectCATMarks[subjectId] || [];
+    const sumScored = marks.reduce((s, m) => s + (Number(m.scored) || 0), 0);
+    const sumTotal = marks.reduce((s, m) => s + (Number(m.total) || 0), 0);
+    return sumTotal > 0 ? (sumScored / sumTotal) * 100 : 0;
+  };
+
+  // Calculate internal marks (CAT 50% + Attendance 20% + Assignments 30%)
+  const getInternalMarks = (subjectId: string) => {
+    const catPercent = getSubjectCATPercent(subjectId);
+    const subjectAttendance = attendance.filter(a => a.subject_id === subjectId);
+    const attendancePercent = subjectAttendance.length > 0 
+      ? (subjectAttendance.filter(a => a.present).length / subjectAttendance.length) * 100 
+      : 0;
+    const assignmentPercent = 85; // Placeholder for assignment marks
+    
+    return (catPercent * 0.5) + (attendancePercent * 0.2) + (assignmentPercent * 0.3);
+  };
+
+  // Calculate CGPA from SGPAs
   const cgpa = useMemo(() => {
-    const w = subjects.reduce((s, x) => s + (Number(x.credits) || 0) * (Number(x.grade) || 0), 0);
-    const c = subjects.reduce((s, x) => s + (Number(x.credits) || 0), 0);
-    return c > 0 ? w / c : 0;
-  }, [subjects]);
+    if (semesterSGPAs.length === 0) return 0;
+    const sum = semesterSGPAs.reduce((s, sgpa) => s + (Number(sgpa) || 0), 0);
+    return sum / semesterSGPAs.length;
+  }, [semesterSGPAs]);
+
+  // Generate CAT marks chart data
+  const catChartData = dbSubjects.map(subject => ({
+    subject: subject.name.substring(0, 8) + (subject.name.length > 8 ? '...' : ''),
+    catPercent: getSubjectCATPercent(subject.id),
+    internalMarks: getInternalMarks(subject.id),
+    attendance: (() => {
+      const subjectAttendance = attendance.filter(a => a.subject_id === subject.id);
+      return subjectAttendance.length > 0 
+        ? (subjectAttendance.filter(a => a.present).length / subjectAttendance.length) * 100 
+        : 0;
+    })()
+  }));
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {[1, 2].map(i => (
+              <div key={i} className="h-64 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -44,91 +101,203 @@ const StudyTracker = () => {
         <h1 className="text-2xl font-bold">Study Tracker</h1>
       </div>
 
-      {/* CAT Marks Calculator */}
+      {/* CAT Marks Visual */}
       <Card className="border-info/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-info" /> CAT Marks Percentage
+            <BarChart3 className="h-5 w-5 text-info" /> CAT Performance Overview
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {catMarks.map((m, i) => (
-            <div key={i} className="grid grid-cols-2 gap-3">
-              <Input
-                type="number"
-                placeholder="Scored"
-                value={m.scored}
-                onChange={(e) => {
-                  const v = [...catMarks];
-                  v[i].scored = Number(e.target.value);
-                  setCatMarks(v);
-                }}
-              />
-              <Input
-                type="number"
-                placeholder="Total"
-                value={m.total}
-                onChange={(e) => {
-                  const v = [...catMarks];
-                  v[i].total = Number(e.target.value);
-                  setCatMarks(v);
-                }}
-              />
+          {catChartData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={catChartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="subject" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip 
+                    formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name === 'catPercent' ? 'CAT Marks' : name === 'internalMarks' ? 'Internal Marks' : 'Attendance']}
+                  />
+                  <Line type="monotone" dataKey="catPercent" stroke="hsl(var(--info))" strokeWidth={2} name="CAT Marks" />
+                  <Line type="monotone" dataKey="internalMarks" stroke="hsl(var(--primary))" strokeWidth={2} name="Internal Marks" />
+                  <Line type="monotone" dataKey="attendance" stroke="hsl(var(--success))" strokeWidth={2} name="Attendance" />
+                </LineChart>
+              </ResponsiveContainer>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-info">
+                    {(catChartData.reduce((sum, d) => sum + d.catPercent, 0) / catChartData.length).toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Avg CAT Marks</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">
+                    {(catChartData.reduce((sum, d) => sum + d.internalMarks, 0) / catChartData.length).toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Avg Internal Marks</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-success">
+                    {(catChartData.reduce((sum, d) => sum + d.attendance, 0) / catChartData.length).toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Avg Attendance</div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Add subjects and CAT marks to see your performance visualization
             </div>
-          ))}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setCatMarks([...catMarks, { scored: 0, total: 25 }])}>Add CAT</Button>
-            <Button variant="ghost" onClick={() => setCatMarks([{ scored: 0, total: 25 }])}>Reset</Button>
-          </div>
-          <div className="text-lg font-semibold">Overall: {catPercent.toFixed(2)}%</div>
+          )}
         </CardContent>
       </Card>
 
-      {/* CGPA Calculator */}
-      <Card className="border-purple/20">
+      {/* Subject-wise CAT Marks Entry */}
+      <Card className="border-warning/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-purple" /> CGPA Calculator
+            <Target className="h-5 w-5 text-warning" /> CAT Marks by Subject
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {dbSubjects.map((subject) => (
+            <div key={subject.id} className="space-y-3 p-4 border rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: subject.color }} />
+                <h4 className="font-medium">{subject.name}</h4>
+                <span className="text-sm text-muted-foreground ml-auto">
+                  {getSubjectCATPercent(subject.id).toFixed(1)}% • Internal: {getInternalMarks(subject.id).toFixed(1)}%
+                </span>
+              </div>
+              
+              {(subjectCATMarks[subject.id] || []).map((catMark, i) => (
+                <div key={i} className="grid grid-cols-2 gap-3">
+                  <Input
+                    type="number"
+                    placeholder="CAT Scored"
+                    value={catMark.scored}
+                    onChange={(e) => {
+                      const newMarks = { ...subjectCATMarks };
+                      if (!newMarks[subject.id]) newMarks[subject.id] = [];
+                      newMarks[subject.id][i] = { ...catMark, scored: Number(e.target.value) };
+                      setSubjectCATMarks(newMarks);
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="CAT Total"
+                    value={catMark.total}
+                    onChange={(e) => {
+                      const newMarks = { ...subjectCATMarks };
+                      if (!newMarks[subject.id]) newMarks[subject.id] = [];
+                      newMarks[subject.id][i] = { ...catMark, total: Number(e.target.value) };
+                      setSubjectCATMarks(newMarks);
+                    }}
+                  />
+                </div>
+              ))}
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const newMarks = { ...subjectCATMarks };
+                    if (!newMarks[subject.id]) newMarks[subject.id] = [];
+                    newMarks[subject.id].push({ scored: 0, total: 25 });
+                    setSubjectCATMarks(newMarks);
+                  }}
+                >
+                  Add CAT
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    const newMarks = { ...subjectCATMarks };
+                    newMarks[subject.id] = [{ scored: 0, total: 25 }];
+                    setSubjectCATMarks(newMarks);
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
+            </div>
+          ))}
+          {dbSubjects.length === 0 && (
+            <div className="text-center py-4 text-muted-foreground">
+              Add subjects first to track CAT marks
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* CGPA Calculator - From SGPA */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-primary" /> CGPA Calculator
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {subjects.map((s, i) => (
+          <div className="text-sm text-muted-foreground mb-4">
+            Enter your SGPA for each semester to calculate overall CGPA
+          </div>
+          
+          {semesterSGPAs.map((sgpa, i) => (
             <div key={i} className="grid grid-cols-3 gap-3 items-center">
+              <div className="text-sm font-medium">Semester {i + 1}</div>
               <Input
                 type="number"
-                placeholder="Credits"
-                value={s.credits}
+                step="0.01"
+                min="0"
+                max="10"
+                placeholder="SGPA"
+                value={sgpa}
                 onChange={(e) => {
-                  const v = [...subjects];
-                  v[i].credits = Number(e.target.value);
-                  setSubjects(v);
+                  const newSGPAs = [...semesterSGPAs];
+                  newSGPAs[i] = Number(e.target.value);
+                  setSemesterSGPAs(newSGPAs);
                 }}
               />
-              <Select
-                value={String(s.grade)}
-                onValueChange={(val) => {
-                  const v = [...subjects];
-                  v[i].grade = Number(val);
-                  setSubjects(v);
-                }}
+              <Button 
+                variant="ghost" 
+                onClick={() => setSemesterSGPAs(semesterSGPAs.filter((_, idx) => idx !== i))}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {gradeOptions.map((g) => (
-                    <SelectItem key={g.value} value={String(g.value)}>{g.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="ghost" onClick={() => setSubjects(subjects.filter((_, idx) => idx !== i))}>Remove</Button>
+                Remove
+              </Button>
             </div>
           ))}
+          
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setSubjects([...subjects, { credits: 3, grade: 10 }])}>Add Subject</Button>
-            <Button variant="ghost" onClick={() => setSubjects([{ credits: 3, grade: 10 }])}>Reset</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setSemesterSGPAs([...semesterSGPAs, 0])}
+            >
+              Add Semester
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => setSemesterSGPAs([])}
+            >
+              Reset
+            </Button>
           </div>
-          <div className="text-lg font-semibold">CGPA: {cgpa.toFixed(2)}</div>
+          
+          {semesterSGPAs.length > 0 && (
+            <div className="pt-4 border-t">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-1">
+                  {cgpa.toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Overall CGPA ({semesterSGPAs.length} semesters)
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

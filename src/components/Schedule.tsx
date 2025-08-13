@@ -29,7 +29,7 @@ interface CalendarEvent {
   startTime: string;
   endTime: string;
   description?: string;
-  type: "study" | "exam" | "assignment" | "break" | "goal-task";
+  type: "study" | "exam" | "assignment" | "break" | "goal-task" | "personal" | "meeting" | "workout";
   priority: "low" | "medium" | "high";
   completed?: boolean;
   repeat?: "none" | "daily" | "weekly" | "weekdays" | "weekends";
@@ -261,15 +261,20 @@ const Schedule = () => {
     toast.success("Event deleted successfully!");
   };
 
+  const typeColors = {
+    "study": { bg: "bg-blue-500", text: "text-white", border: "border-blue-500" },
+    "exam": { bg: "bg-red-500", text: "text-white", border: "border-red-500" },
+    "assignment": { bg: "bg-yellow-500", text: "text-white", border: "border-yellow-500" },
+    "break": { bg: "bg-green-500", text: "text-white", border: "border-green-500" },
+    "goal-task": { bg: "bg-purple-500", text: "text-white", border: "border-purple-500" },
+    "personal": { bg: "bg-pink-500", text: "text-white", border: "border-pink-500" },
+    "meeting": { bg: "bg-indigo-500", text: "text-white", border: "border-indigo-500" },
+    "workout": { bg: "bg-orange-500", text: "text-white", border: "border-orange-500" }
+  };
+
   const getTypeColor = (type: string) => {
-    switch (type) {
-      case "study": return "bg-blue-100 border-blue-300 text-blue-800";
-      case "exam": return "bg-red-100 border-red-300 text-red-800";
-      case "assignment": return "bg-yellow-100 border-yellow-300 text-yellow-800";
-      case "break": return "bg-green-100 border-green-300 text-green-800";
-      case "goal-task": return "bg-purple-100 border-purple-300 text-purple-800";
-      default: return "bg-gray-100 border-gray-300 text-gray-800";
-    }
+    const colors = typeColors[type as keyof typeof typeColors] || typeColors.study;
+    return `${colors.bg} ${colors.border} ${colors.text}`;
   };
 
   const formatTimeRange = (start: string, end: string) => {
@@ -418,14 +423,14 @@ const Schedule = () => {
 
       {/* Event Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh]">
+        <DialogContent className="max-w-lg max-h-[90vh]">
           <DialogHeader className="pb-2">
             <DialogTitle className="text-lg">
               {editingEvent ? "Edit Event" : "Add New Event"}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-1">
+          <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-1">
             <div className="space-y-1.5">
               <Label htmlFor="title" className="text-sm">Title *</Label>
               <Input
@@ -503,11 +508,14 @@ const Schedule = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="study">Study Session</SelectItem>
-                    <SelectItem value="exam">Exam</SelectItem>
-                    <SelectItem value="assignment">Assignment</SelectItem>
-                    <SelectItem value="break">Break</SelectItem>
-                    <SelectItem value="goal-task">Goal Task</SelectItem>
+                    <SelectItem value="study">📚 Study Session</SelectItem>
+                    <SelectItem value="exam">📝 Exam</SelectItem>
+                    <SelectItem value="assignment">📋 Assignment</SelectItem>
+                    <SelectItem value="break">☕ Break</SelectItem>
+                    <SelectItem value="goal-task">🎯 Goal Task</SelectItem>
+                    <SelectItem value="personal">👤 Personal</SelectItem>
+                    <SelectItem value="meeting">👥 Meeting</SelectItem>
+                    <SelectItem value="workout">💪 Workout</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

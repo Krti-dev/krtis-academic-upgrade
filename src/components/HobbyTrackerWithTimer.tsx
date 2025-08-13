@@ -19,6 +19,23 @@ const HobbyTrackerWithTimer = () => {
   const [editingHobby, setEditingHobby] = useState<Hobby | null>(null);
   const [editName, setEditName] = useState("");
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
+
+  // Load hobbies from localStorage on component mount
+  useEffect(() => {
+    const savedHobbies = localStorage.getItem('hobbies');
+    if (savedHobbies) {
+      try {
+        setHobbies(JSON.parse(savedHobbies));
+      } catch (error) {
+        console.error('Error parsing saved hobbies:', error);
+      }
+    }
+  }, []);
+
+  // Save hobbies to localStorage whenever hobbies state changes
+  useEffect(() => {
+    localStorage.setItem('hobbies', JSON.stringify(hobbies));
+  }, [hobbies]);
   
   // Timer states
   const [activeHobbyId, setActiveHobbyId] = useState<number | null>(null);
