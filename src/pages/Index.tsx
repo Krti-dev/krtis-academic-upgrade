@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Dashboard from "@/components/Dashboard";
 import StudyTracker from "@/components/StudyTracker";
@@ -14,12 +15,24 @@ import { Goals } from "@/components/Goals";
 import AIAssistant from "@/components/AIAssistant";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { LogOut, BookOpen } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [setupComplete, setSetupComplete] = useState(false);
   const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
   const { timetable, subjects, loading } = useSupabaseData();
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [authLoading, user, navigate]);
 
   // Check if setup is complete (has subjects and timetable)
   useEffect(() => {
@@ -93,6 +106,23 @@ const Index = () => {
     }
   };
 
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <BookOpen className="w-12 h-12 text-primary mx-auto animate-pulse" />
+          <p className="text-muted-foreground">Loading your study dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
+
   // Show timetable setup if not complete
   if (!setupComplete && !loading) {
     return <TimetableSetup onComplete={() => setSetupComplete(true)} />;
@@ -100,7 +130,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={signOut}
+          className="ml-auto mr-4 text-muted-foreground hover:text-destructive"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
+      </Navigation>
       <main className="lg:ml-64 p-4 lg:p-6">
         {renderContent()}
       </main>

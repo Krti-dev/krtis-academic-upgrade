@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useAuth } from './useAuth';
 
 export interface Subject {
   id: string;
@@ -58,6 +60,7 @@ export interface BudgetLimit {
 }
 
 export const useSupabaseData = () => {
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
   const [attendance, setAttendance] = useState<AttendanceEntry[]>([]);
@@ -183,14 +186,31 @@ export const useSupabaseData = () => {
     }
   };
 
+  // Only load data if user is authenticated
   useEffect(() => {
-    loadAllData();
-  }, []);
+    if (user) {
+      loadAllData();
+    } else {
+      // Reset all data when user logs out
+      setSubjects([]);
+      setTimetable([]);
+      setAttendance([]);
+      setStudySessions([]);
+      setExpenses([]);
+      setBudgetLimits([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const addSubject = async (subject: Omit<Subject, 'id'>) => {
+    if (!user) {
+      toast.error("You must be logged in to add subjects");
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('subjects')
-      .insert([subject])
+      .insert([{ ...subject, user_id: user.id }])
       .select()
       .single();
 
@@ -204,9 +224,14 @@ export const useSupabaseData = () => {
   };
 
   const addTimetableEntry = async (entry: Omit<TimetableEntry, 'id' | 'subject'>) => {
+    if (!user) {
+      toast.error("You must be logged in to add timetable entries");
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('timetable')
-      .insert([entry])
+      .insert([{ ...entry, user_id: user.id }])
       .select(`
         *,
         subject:subjects(*)
@@ -223,9 +248,14 @@ export const useSupabaseData = () => {
   };
 
   const addAttendanceEntry = async (entry: Omit<AttendanceEntry, 'id' | 'subject'>) => {
+    if (!user) {
+      toast.error("You must be logged in to add attendance entries");
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('attendance')
-      .insert([entry])
+      .insert([{ ...entry, user_id: user.id }])
       .select(`
         *,
         subject:subjects(*)
@@ -242,9 +272,14 @@ export const useSupabaseData = () => {
   };
 
   const addStudySession = async (session: Omit<StudySession, 'id' | 'subject'>) => {
+    if (!user) {
+      toast.error("You must be logged in to add study sessions");
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('study_sessions')
-      .insert([session])
+      .insert([{ ...session, user_id: user.id }])
       .select(`
         *,
         subject:subjects(*)
@@ -261,10 +296,15 @@ export const useSupabaseData = () => {
   };
 
   const clearTimetable = async () => {
+    if (!user) {
+      toast.error("You must be logged in to clear timetable");
+      return;
+    }
+    
     const { error } = await supabase
       .from('timetable')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error clearing timetable:', error);
@@ -305,10 +345,15 @@ export const useSupabaseData = () => {
   };
 
   const addExpense = async (expenseData: { amount: number; date: string; category: string; description: string }) => {
+    if (!user) {
+      toast.error("You must be logged in to add expenses");
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('expenses')
-        .insert(expenseData)
+        .insert({ ...expenseData, user_id: user.id })
         .select()
         .single();
 
@@ -323,10 +368,15 @@ export const useSupabaseData = () => {
   };
 
   const addBudgetLimit = async (budgetData: { category: string; monthly_limit: number }) => {
+    if (!user) {
+      toast.error("You must be logged in to add budget limits");
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('budget_limits')
-        .insert(budgetData)
+        .insert({ ...budgetData, user_id: user.id })
         .select()
         .single();
 

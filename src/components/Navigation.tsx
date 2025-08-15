@@ -18,9 +18,10 @@ import { cn } from "@/lib/utils";
 interface NavigationProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  children?: React.ReactNode;
 }
 
-const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
+const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -94,6 +95,13 @@ const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
             })}
           </div>
         </div>
+
+        {/* Additional children (like sign out button) */}
+        {children && (
+          <div className="px-6 pb-6 border-t border-border pt-6">
+            {children}
+          </div>
+        )}
       </nav>
     </>
   );
