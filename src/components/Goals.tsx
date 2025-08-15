@@ -301,12 +301,11 @@ export const Goals = () => {
           {editable ? (
             <div className="flex-1 flex items-center gap-2">
               <Input
+                key={`task-input-${task.id}`}
                 value={task.text}
                 onChange={(e) => {
-                  // Use a timeout to prevent losing focus on each keystroke
                   if (onTaskUpdate) {
                     const newValue = e.target.value;
-                    // Update local state immediately for responsive UI
                     const updatedTasks = tasks.map(t => 
                       t.id === task.id ? { ...t, text: newValue } : t
                     );
@@ -315,6 +314,14 @@ export const Goals = () => {
                 }}
                 placeholder="Enter task..."
                 className="flex-1 border-0 bg-transparent p-1 h-8 text-sm focus-visible:ring-1 focus-visible:ring-ring rounded-md"
+                onBlur={(e) => {
+                  // Save focus state to prevent jumping
+                  e.target.setAttribute('data-was-focused', 'true');
+                }}
+                onFocus={(e) => {
+                  // Remove focus marker when focused again
+                  e.target.removeAttribute('data-was-focused');
+                }}
               />
               <Button
                 size="sm"

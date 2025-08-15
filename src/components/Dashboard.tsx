@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import AttendanceMarksDialog from "./AttendanceMarksDialog";
 
 const Dashboard = () => {
-  const { subjects, timetable, attendance, studySessions, loading, getAttendanceStats } = useSupabaseData();
+  const { subjects, timetable, attendance, studySessions, expenses, budgetLimits, loading, getAttendanceStats } = useSupabaseData();
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [marksDialogOpen, setMarksDialogOpen] = useState(false);
 
@@ -91,12 +91,19 @@ const Dashboard = () => {
       ? allEffectivenessRatings.reduce((sum, rating) => sum + rating, 0) / allEffectivenessRatings.length
       : 0;
 
-    // Calculate total hobby time (placeholder for now)
-    const totalHobbyTime = 0; // Will be updated with real data later
+    // Calculate total hobby time from localStorage for now
+    const totalHobbyTime = (() => {
+      try {
+        const hobbies = JSON.parse(localStorage.getItem('hobbies') || '[]');
+        return hobbies.reduce((sum: number, hobby: any) => sum + (hobby.timeThisWeek || 0), 0);
+      } catch {
+        return 0;
+      }
+    })();
 
-    // Calculate total budget and spent (placeholder for now)
-    const totalBudget = 6800;
-    const totalSpent = 2875.5;
+    // Calculate total budget and spent from database
+    const totalBudget = budgetLimits.reduce((sum, limit) => sum + Number(limit.monthly_limit), 0);
+    const totalSpent = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
 
     return {
       attendanceStats,
@@ -228,15 +235,11 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="pt-2">
             <div className="text-2xl font-bold text-foreground">
-              {(() => {
-                const hobbies = JSON.parse(localStorage.getItem('hobbies') || '[]');
-                const totalTime = hobbies.reduce((sum: number, hobby: any) => sum + (hobby.timeThisWeek || 0), 0);
-                return Math.floor(totalTime / 60);
-              })()}h
+              {Math.floor(stats.totalHobbyTime / 60)}h
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <Heart className="h-3 w-3 text-pink" />
-              <span>Total logged</span>
+              <span>This week</span>
             </div>
           </CardContent>
         </Card>
@@ -248,13 +251,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="pt-2">
             <div className="text-2xl font-bold text-foreground">
-              {(() => {
-                const totalBudget = parseFloat(localStorage.getItem('totalBudget') || '0');
-                const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
-                const totalSpent = expenses.reduce((sum: number, expense: any) => sum + expense.amount, 0);
-                const remaining = totalBudget - totalSpent;
-                return `₹${remaining.toFixed(0)}`;
-              })()}
+              ₹{Math.max(0, stats.totalBudget - stats.totalSpent).toFixed(0)}
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <TrendingUp className="h-3 w-3 text-emerald" />

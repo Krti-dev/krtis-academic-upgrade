@@ -40,11 +40,30 @@ export interface StudySession {
   subject?: Subject;
 }
 
+export interface Expense {
+  id: string;
+  amount: number;
+  date: string;
+  category: string;
+  description: string;
+  created_at: string;
+}
+
+export interface BudgetLimit {
+  id: string;
+  category: string;
+  monthly_limit: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useSupabaseData = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
   const [attendance, setAttendance] = useState<AttendanceEntry[]>([]);
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [budgetLimits, setBudgetLimits] = useState<BudgetLimit[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchSubjects = async () => {
@@ -109,20 +128,54 @@ export const useSupabaseData = () => {
     return data || [];
   };
 
+  const fetchExpenses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      return [];
+    }
+  };
+
+  const fetchBudgetLimits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('budget_limits')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching budget limits:', error);
+      return [];
+    }
+  };
+
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [subjectsData, timetableData, attendanceData, studySessionsData] = await Promise.all([
+      const [subjectsData, timetableData, attendanceData, studySessionsData, expensesData, budgetLimitsData] = await Promise.all([
         fetchSubjects(),
         fetchTimetable(),
         fetchAttendance(),
-        fetchStudySessions()
+        fetchStudySessions(),
+        fetchExpenses(),
+        fetchBudgetLimits()
       ]);
 
       setSubjects(subjectsData);
       setTimetable(timetableData);
       setAttendance(attendanceData);
       setStudySessions(studySessionsData);
+      setExpenses(expensesData);
+      setBudgetLimits(budgetLimitsData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -251,16 +304,56 @@ export const useSupabaseData = () => {
     };
   };
 
+  const addExpense = async (expenseData: { amount: number; date: string; category: string; description: string }) => {
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert(expenseData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setExpenses(prev => [data, ...prev]);
+      return data;
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      throw error;
+    }
+  };
+
+  const addBudgetLimit = async (budgetData: { category: string; monthly_limit: number }) => {
+    try {
+      const { data, error } = await supabase
+        .from('budget_limits')
+        .insert(budgetData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setBudgetLimits(prev => [data, ...prev]);
+      return data;
+    } catch (error) {
+      console.error('Error adding budget limit:', error);
+      throw error;
+    }
+  };
+
   return {
     subjects,
     timetable,
     attendance,
     studySessions,
+    expenses,
+    budgetLimits,
     loading,
     addSubject,
     addTimetableEntry,
     addAttendanceEntry,
     addStudySession,
+    addExpense,
+    addBudgetLimit,
     clearTimetable,
     getAttendanceStats,
     refetch: loadAllData
