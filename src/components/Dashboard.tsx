@@ -83,15 +83,7 @@ const Dashboard = () => {
       };
     });
 
-    // Calculate average effectiveness
-    const allEffectivenessRatings = studySessions
-      .filter(s => s.effectiveness_rating !== null)
-      .map(s => s.effectiveness_rating || 0);
-    const avgEffectiveness = allEffectivenessRatings.length > 0 
-      ? allEffectivenessRatings.reduce((sum, rating) => sum + rating, 0) / allEffectivenessRatings.length
-      : 0;
-
-    // Calculate total hobby time from localStorage for now
+    // Calculate total hobby time from localStorage for now (moved up for effectiveness calculation)
     const totalHobbyTime = (() => {
       try {
         const hobbies = JSON.parse(localStorage.getItem('hobbies') || '[]');
@@ -101,9 +93,64 @@ const Dashboard = () => {
       }
     })();
 
-    // Calculate total budget and spent from database
+    // Calculate total budget and spent from database (moved up for effectiveness calculation)
     const totalBudget = budgetLimits.reduce((sum, limit) => sum + Number(limit.monthly_limit), 0);
     const totalSpent = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+    // Calculate comprehensive effectiveness algorithm
+    const calculateComprehensiveEffectiveness = () => {
+      // 1. Study Effectiveness (40% weight)
+      const allEffectivenessRatings = studySessions
+        .filter(s => s.effectiveness_rating !== null)
+        .map(s => s.effectiveness_rating || 0);
+      const studyEffectiveness = allEffectivenessRatings.length > 0 
+        ? allEffectivenessRatings.reduce((sum, rating) => sum + rating, 0) / allEffectivenessRatings.length
+        : 0;
+
+      // 2. Financial Health Score (20% weight)
+      const financialScore = (() => {
+        if (totalBudget === 0) return 5; // Neutral score if no budget set
+        const spendingRatio = totalSpent / totalBudget;
+        if (spendingRatio <= 0.7) return 10; // Under 70% = excellent
+        if (spendingRatio <= 0.9) return 7;  // 70-90% = good
+        if (spendingRatio <= 1.0) return 5;  // 90-100% = okay
+        if (spendingRatio <= 1.2) return 3;  // 100-120% = poor
+        return 1; // Over 120% = very poor
+      })();
+
+      // 3. Academic Performance Score (25% weight)
+      const academicScore = (() => {
+        // Get CGPA from localStorage (from StudyTracker)
+        const savedSGPAs = JSON.parse(localStorage.getItem('semesterSGPAs') || '[]');
+        if (savedSGPAs.length === 0) return 5; // Neutral if no CGPA data
+        
+        const cgpa = savedSGPAs.reduce((sum: number, sgpa: number) => sum + (Number(sgpa) || 0), 0) / savedSGPAs.length;
+        
+        // Convert CGPA to 10-point scale
+        if (cgpa >= 9.0) return 10;
+        if (cgpa >= 8.0) return 8;
+        if (cgpa >= 7.0) return 6;
+        if (cgpa >= 6.0) return 4;
+        if (cgpa >= 5.0) return 2;
+        return 1;
+      })();
+
+      // 4. Life Balance Score - Hobby Time (15% weight)
+      const balanceScore = (() => {
+        const hoursPerWeek = totalHobbyTime / 60; // Convert minutes to hours
+        if (hoursPerWeek >= 8 && hoursPerWeek <= 15) return 10; // 8-15 hours = excellent balance
+        if (hoursPerWeek >= 5 && hoursPerWeek <= 20) return 8;   // 5-20 hours = good balance
+        if (hoursPerWeek >= 2 && hoursPerWeek <= 25) return 6;   // 2-25 hours = okay balance
+        if (hoursPerWeek < 2) return 3; // Too little = poor balance
+        return 2; // Too much = poor balance
+      })();
+
+      // Calculate weighted average
+      const totalScore = (studyEffectiveness * 0.4) + (financialScore * 0.2) + (academicScore * 0.25) + (balanceScore * 0.15);
+      return Math.round(totalScore * 10) / 10; // Round to 1 decimal place
+    };
+
+    const avgEffectiveness = calculateComprehensiveEffectiveness();
 
     return {
       attendanceStats,
