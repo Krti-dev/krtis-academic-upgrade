@@ -5,16 +5,43 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface QuickTaskAddProps {
   goalId: string;
   onTaskAdded: () => void;
+  goalTitle?: string;
+  goalCategory?: string;
 }
 
-export const QuickTaskAdd = ({ goalId, onTaskAdded }: QuickTaskAddProps) => {
+export const QuickTaskAdd = ({ goalId, onTaskAdded, goalTitle, goalCategory }: QuickTaskAddProps) => {
   const [taskText, setTaskText] = useState("");
+  const [goalInfo, setGoalInfo] = useState<{ title: string; category: string } | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (goalTitle && goalCategory) {
+      setGoalInfo({ title: goalTitle, category: goalCategory });
+    } else {
+      fetchGoalInfo();
+    }
+  }, [goalId, goalTitle, goalCategory]);
+
+  const fetchGoalInfo = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('study_goals')
+        .select('title, category')
+        .eq('id', goalId)
+        .single();
+
+      if (error) throw error;
+      setGoalInfo(data);
+    } catch (error) {
+      console.error('Error fetching goal info:', error);
+    }
+  };
 
   const handleAddTask = async () => {
     if (!taskText.trim()) return;
@@ -82,11 +109,14 @@ export const QuickTaskAdd = ({ goalId, onTaskAdded }: QuickTaskAddProps) => {
   };
 
   return (
-    <Card className="border-dashed border-2 border-muted-foreground/20 hover:border-primary/40 transition-colors">
+    <Card className="border-dashed border-2 border-muted-foreground/20 hover:border-primary/40 transition-all duration-300 hover:shadow-md animate-fade-in">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Target className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">Quick Add Task</span>
+          <div className="flex-1">
+            <span className="text-sm font-medium text-muted-foreground">Quick Add to</span>
+            <p className="text-sm font-semibold truncate">{goalInfo?.title || 'Loading...'}</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Input

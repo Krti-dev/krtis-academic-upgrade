@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import confetti from 'canvas-confetti';
+import { QuickTaskAdd } from "./QuickTaskAdd";
 
 interface Goal {
   id: string;
@@ -430,10 +431,27 @@ export const Goals = () => {
         </Dialog>
       </div>
 
+      {/* Quick Task Add Section */}
+      {filteredGoals.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">Quick Add Task to Goal</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredGoals.map((goal) => (
+              <QuickTaskAdd 
+                key={`quick-${goal.id}`}
+                goalId={goal.id}
+                goalTitle={goal.title}
+                goalCategory={goal.category}
+                onTaskAdded={fetchGoals}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Goals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredGoals.map((goal) => {
+        {filteredGoals.map((goal, index) => {
           const completedTasks = goal.tasks?.filter(task => task.completed).length || 0;
           const totalTasks = goal.tasks?.length || 0;
           const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -442,10 +460,11 @@ export const Goals = () => {
               <Card 
                 key={goal.id} 
                 className={cn(
-                  "cursor-pointer transition-all duration-200 hover:shadow-md",
+                  "cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in card-hover",
                   goal.tileColor ? (tileColorClasses[goal.tileColor] || tileColorClasses.primary) : (categoryColors[goal.category] || tileColorClasses.primary),
                   goal.completed && "opacity-75"
                 )}
+                style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => {
                   // Open editor to add/view tasks instead of auto-adding a checkbox
                   setEditingGoal(goal);
