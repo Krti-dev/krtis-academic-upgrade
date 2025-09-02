@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import confetti from 'canvas-confetti';
 import { QuickTaskAdd } from "./QuickTaskAdd";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Goal {
   id: string;
@@ -70,6 +71,7 @@ const tileColorClasses: Record<string, string> = {
 };
 
 export const Goals = () => {
+  const { user } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -83,14 +85,24 @@ export const Goals = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchGoals();
-  }, []);
+    if (user) {
+      fetchGoals();
+    } else {
+      setGoals([]);
+    }
+  }, [user]);
 
   const fetchGoals = async () => {
+    if (!user) {
+      setGoals([]);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('study_goals')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -135,6 +147,15 @@ export const Goals = () => {
 
   const handleCreateGoal = async () => {
     if (!newGoal.title.trim()) return;
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create goals",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const goalData = {
@@ -142,6 +163,7 @@ export const Goals = () => {
         description: buildDescription(newGoal.tasks, newGoal.tileColor),
         category: newGoal.category,
         completed: false,
+        user_id: user.id,
       };
 
       const { error } = await supabase

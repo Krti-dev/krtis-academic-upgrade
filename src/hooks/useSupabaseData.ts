@@ -70,9 +70,12 @@ export const useSupabaseData = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchSubjects = async () => {
+    if (!user) return [];
+    
     const { data, error } = await supabase
       .from('subjects')
       .select('*')
+      .eq('user_id', user.id)
       .order('name');
     
     if (error) {
@@ -83,12 +86,15 @@ export const useSupabaseData = () => {
   };
 
   const fetchTimetable = async () => {
+    if (!user) return [];
+    
     const { data, error } = await supabase
       .from('timetable')
       .select(`
         *,
         subject:subjects(*)
       `)
+      .eq('user_id', user.id)
       .order('day_of_week, start_time');
     
     if (error) {
@@ -99,12 +105,15 @@ export const useSupabaseData = () => {
   };
 
   const fetchAttendance = async () => {
+    if (!user) return [];
+    
     const { data, error } = await supabase
       .from('attendance')
       .select(`
         *,
         subject:subjects(*)
       `)
+      .eq('user_id', user.id)
       .order('date', { ascending: false });
     
     if (error) {
@@ -115,12 +124,15 @@ export const useSupabaseData = () => {
   };
 
   const fetchStudySessions = async () => {
+    if (!user) return [];
+    
     const { data, error } = await supabase
       .from('study_sessions')
       .select(`
         *,
         subject:subjects(*)
       `)
+      .eq('user_id', user.id)
       .order('date', { ascending: false })
       .limit(50);
     
@@ -132,10 +144,13 @@ export const useSupabaseData = () => {
   };
 
   const fetchExpenses = async () => {
+    if (!user) return [];
+    
     try {
       const { data, error } = await supabase
         .from('expenses')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: false });
 
       if (error) throw error;
@@ -147,10 +162,13 @@ export const useSupabaseData = () => {
   };
 
   const fetchBudgetLimits = async () => {
+    if (!user) return [];
+    
     try {
       const { data, error } = await supabase
         .from('budget_limits')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
