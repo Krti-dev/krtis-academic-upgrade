@@ -314,6 +314,14 @@ export const Goals = () => {
                 placeholder="Enter task..."
                 className="flex-1 border-0 bg-transparent p-1 h-8 text-sm focus-visible:ring-1 focus-visible:ring-ring rounded-md"
                 autoFocus={task.text === ""}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (onTaskUpdate && task.text.trim()) {
+                      addNewTask(tasks, onTaskUpdate);
+                    }
+                  }
+                }}
               />
               <Button
                 size="sm"
