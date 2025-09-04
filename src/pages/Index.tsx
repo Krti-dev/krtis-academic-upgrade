@@ -11,8 +11,8 @@ import AttendanceDialog from "@/components/AttendanceDialog";
 import Settings from "@/components/Settings";
 import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
 import BudgetTrackerImproved from "@/components/BudgetTrackerImproved";
-import { Goals } from "@/components/Goals";
-import AIAssistant from "@/components/AIAssistant";
+import { EnhancedGoals } from "@/components/EnhancedGoals";
+import SmartAIAssistant from "@/components/SmartAIAssistant";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
@@ -96,9 +96,9 @@ const Index = () => {
       case "budget":
         return <BudgetTrackerImproved />;
       case "goals":
-        return <Goals />;
+        return <EnhancedGoals />;
       case "ai":
-        return <AIAssistant />;
+        return <SmartAIAssistant />;
       case "settings":
         return <Settings />;
       default:
@@ -129,20 +129,22 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background mesh-background">
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab}>
         <Button
           variant="ghost"
           size="sm"
           onClick={signOut}
-          className="ml-auto mr-4 text-muted-foreground hover:text-destructive"
+          className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
         >
           <LogOut className="w-4 h-4 mr-2" />
           Sign Out
         </Button>
       </Navigation>
-      <main className="lg:ml-64 p-4 lg:p-6">
-        {renderContent()}
+      <main className="lg:ml-64 min-h-screen">
+        <div className="p-4 lg:p-6">
+          {renderContent()}
+        </div>
       </main>
       <AttendanceDialog
         open={attendanceDialogOpen}

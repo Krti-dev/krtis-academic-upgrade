@@ -60,15 +60,18 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
 
       {/* Navigation Sidebar */}
       <nav className={cn(
-        "fixed left-0 top-0 h-screen w-64 bg-card border-r border-border z-40 transition-transform duration-300 flex flex-col",
+        "fixed left-0 top-0 h-screen w-64 bg-card/95 backdrop-blur-lg border-r border-border/50 z-40 transition-all duration-300 flex flex-col shadow-xl",
         "lg:translate-x-0",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
-        <div className="flex items-center gap-2 mb-8 mt-12 lg:mt-0 px-6 pt-6">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
-            <BookOpen className="h-5 w-5 text-primary-foreground" />
+        <div className="flex items-center gap-3 mb-8 mt-12 lg:mt-0 px-6 pt-6">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple to-pink rounded-xl flex items-center justify-center shadow-lg animate-pulse-scale">
+            <BookOpen className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold">Academia</h1>
+          <div>
+            <h1 className="text-xl font-bold gradient-text">Academia</h1>
+            <p className="text-xs text-muted-foreground">Smart Study Platform</p>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
@@ -78,10 +81,12 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
               return (
                 <Button
                   key={item.id}
-                  variant={activeTab === item.id ? "default" : "ghost"}
+                  variant={activeTab === item.id ? "gradient" : "ghost"}
                   className={cn(
-                    "w-full justify-start gap-3 h-12",
-                    activeTab === item.id && "bg-primary text-primary-foreground"
+                    "w-full justify-start gap-3 h-12 text-left transition-all duration-200",
+                    activeTab === item.id 
+                      ? "bg-gradient-to-r from-primary to-purple text-white shadow-lg shadow-primary/25" 
+                      : "hover:bg-accent/50 hover:translate-x-1"
                   )}
                   onClick={() => {
                     setActiveTab(item.id);
@@ -89,7 +94,7 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
                   }}
                 >
                   <Icon className="h-5 w-5" />
-                  {item.label}
+                  <span className="font-medium">{item.label}</span>
                 </Button>
               );
             })}
