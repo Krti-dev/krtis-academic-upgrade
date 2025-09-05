@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import VoiceAssistant from './VoiceAssistant';
+import StudyMaterialsGenerator from './StudyMaterialsGenerator';
 
 interface InsightCard {
   id: string;
@@ -257,14 +260,44 @@ Remember: Every expert was once a beginner. Your ${stats.weeklyHours}h this week
     setLoading(true);
     setAnswer("");
     
-    // Simulate realistic API delay
-    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500));
-    
     try {
-      const contextualResponse = generateContextualResponse(prompt);
-      setAnswer(contextualResponse);
-    } catch (e) {
-      setAnswer("AI assistant temporarily unavailable. Please try again.");
+      // Create comprehensive profile for AI
+      const profile = {
+        user_id: user?.id,
+        academic: {
+          subjects: subjects.length,
+          totalStudyHours: stats.totalStudyHours,
+          weeklyStudyHours: stats.weeklyHours,
+          attendanceRate: stats.attendanceOverall,
+          recentSessions: studySessions.slice(0, 10).map(s => ({
+            subject: s.subject,
+            duration: s.duration_minutes,
+            effectiveness: s.effectiveness_rating,
+            date: s.date
+          }))
+        },
+        financial: {
+          budgetUsagePercent: stats.budgetUsed,
+          totalExpenses: expenses.reduce((sum, e) => sum + Number(e.amount), 0),
+          expenseCategories: [...new Set(expenses.map(e => e.category))]
+        },
+        insights: smartInsights.map(i => ({
+          type: i.type,
+          title: i.title,
+          description: i.description
+        }))
+      };
+
+      const { data, error } = await supabase.functions.invoke('generate-with-ai', {
+        body: { prompt, profile }
+      });
+
+      if (error) throw error;
+
+      setAnswer(data.generatedText);
+    } catch (error) {
+      console.error('AI request failed:', error);
+      setAnswer("I'm having trouble connecting to the AI service right now. Please try again in a moment.");
     } finally {
       setLoading(false);
     }
@@ -435,6 +468,14 @@ Remember: Every expert was once a beginner. Your ${stats.weeklyHours}h this week
         </CardContent>
       </Card>
 
+      {/* Voice Assistant */}
+      <VoiceAssistant 
+        onTranscript={(text) => setPrompt(text)}
+      />
+
+      {/* Study Materials Generator */}
+      <StudyMaterialsGenerator />
+
       {/* Quick Actions */}
       <Card className="glass-card border-border/50">
         <CardHeader>
@@ -446,10 +487,10 @@ Remember: Every expert was once a beginner. Your ${stats.weeklyHours}h this week
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label: "Study Tips", prompt: "Give me effective study techniques" },
-              { label: "Time Management", prompt: "How can I better manage my time?" },
-              { label: "Budget Help", prompt: "Tips for managing student budget" },
-              { label: "Motivation", prompt: "I need motivation to study consistently" }
+              { label: "Study Tips", prompt: "Give me effective study techniques based on my current performance" },
+              { label: "Time Management", prompt: "How can I optimize my study schedule given my current patterns?" },
+              { label: "Budget Analysis", prompt: "Analyze my spending and suggest improvements" },
+              { label: "Performance Review", prompt: "Review my academic performance and suggest improvements" }
             ].map((action) => (
               <Button
                 key={action.label}

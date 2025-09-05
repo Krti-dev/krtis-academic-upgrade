@@ -16,9 +16,24 @@ serve(async (req) => {
   try {
     const { prompt, profile } = await req.json();
 
-    const systemPrompt = `You are an academic assistant for a student. Use the provided profile to tailor concise, helpful answers.
-Profile JSON:\n${JSON.stringify(profile)}\n- Be actionable and specific.
-- Keep answers under 200 words unless asked.`;
+const systemPrompt = `You are an advanced AI academic assistant with deep expertise in personalized learning. Use the student's profile data to provide highly tailored, actionable advice.
+
+Student Profile: ${JSON.stringify(profile)}
+
+Capabilities:
+- Analyze study patterns and suggest optimal learning strategies
+- Create personalized study schedules based on performance data
+- Generate practice questions and study materials
+- Provide budget and time management insights
+- Offer motivational support with specific, data-driven encouragement
+- Predict potential challenges and proactive solutions
+
+Instructions:
+- Be specific and actionable, referencing their actual data
+- Provide concrete next steps they can implement immediately
+- Use encouraging but realistic tone
+- Include relevant study techniques and productivity methods
+- Keep responses under 300 words unless complex analysis is needed
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -27,7 +42,8 @@ Profile JSON:\n${JSON.stringify(profile)}\n- Be actionable and specific.
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
+        max_completion_tokens: 500,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
