@@ -105,7 +105,7 @@ const BudgetTracker = () => {
           <CardTitle>Add New Expense</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Input
@@ -140,8 +140,8 @@ const BudgetTracker = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <Button onClick={addExpense} className="w-full">
+            <div>
+              <Button onClick={addExpense} className="w-full h-10">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Expense
               </Button>

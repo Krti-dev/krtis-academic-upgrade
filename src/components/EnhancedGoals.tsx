@@ -160,12 +160,14 @@ export const EnhancedGoals = () => {
   };
 
   const filterGoals = () => {
-    let filtered = goals;
+    let filtered = [...goals];
 
-    if (searchTerm) {
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(goal => 
-        goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        goal.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        goal.title.toLowerCase().includes(searchLower) ||
+        goal.description?.toLowerCase().includes(searchLower) ||
+        goal.tasks?.some(task => task.text.toLowerCase().includes(searchLower))
       );
     }
 
@@ -178,6 +180,23 @@ export const EnhancedGoals = () => {
         filterStatus === "completed" ? goal.completed : !goal.completed
       );
     }
+
+    // Sort by priority and due date
+    filtered.sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const aPriority = priorityOrder[a.priority || 'medium'];
+      const bPriority = priorityOrder[b.priority || 'medium'];
+      
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      
+      if (a.target_date && b.target_date) {
+        return new Date(a.target_date).getTime() - new Date(b.target_date).getTime();
+      }
+      
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
     setFilteredGoals(filtered);
   };
@@ -408,9 +427,12 @@ export const EnhancedGoals = () => {
                 Create Goal
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg" aria-describedby="goal-dialog-description">
               <DialogHeader>
                 <DialogTitle>Create New Goal</DialogTitle>
+                <p id="goal-dialog-description" className="text-sm text-muted-foreground">
+                  Create a new goal to track your progress and achievements
+                </p>
               </DialogHeader>
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 <Input
@@ -532,8 +554,38 @@ export const EnhancedGoals = () => {
         </Select>
       </div>
 
+      {/* Stats Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card className="p-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-primary">{goals.length}</div>
+            <div className="text-sm text-muted-foreground">Total Goals</div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-success">{goals.filter(g => g.completed).length}</div>
+            <div className="text-sm text-muted-foreground">Completed</div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-warning">{goals.filter(g => !g.completed).length}</div>
+            <div className="text-sm text-muted-foreground">Active</div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-info">
+              {goals.length > 0 ? Math.round((goals.filter(g => g.completed).length / goals.length) * 100) : 0}%
+            </div>
+            <div className="text-sm text-muted-foreground">Success Rate</div>
+          </div>
+        </Card>
+      </div>
+
       {/* Goals Grid */}
-      <div className="responsive-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredGoals.map((goal, index) => {
           const progress = getProgressPercentage(goal);
           const daysUntilDue = getDaysUntilDue(goal.target_date);
