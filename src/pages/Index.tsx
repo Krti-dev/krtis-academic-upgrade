@@ -12,8 +12,7 @@ import Settings from "@/components/Settings";
 import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
 import BudgetTrackerImproved from "@/components/BudgetTrackerImproved";
 import { SimpleGoals } from "@/components/SimpleGoals";
-import SmartAIAssistant from "@/components/SmartAIAssistant";
-import { AgenticAI } from "@/components/AgenticAI";
+import StudySage from "@/components/StudySage";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,9 +98,7 @@ const Index = () => {
       case "goals":
         return <SimpleGoals />;
       case "ai":
-        return <SmartAIAssistant />;
-      case "agentic-ai":
-        return <AgenticAI />;
+        return <StudySage />;
       case "settings":
         return <Settings />;
       default:

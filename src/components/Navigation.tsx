@@ -32,8 +32,7 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
     { id: "goals", label: "Goals", icon: Target },
     { id: "hobbies", label: "Hobbies", icon: Heart },
     { id: "budget", label: "Budget Tracker", icon: Wallet },
-    { id: "ai", label: "AI Assistant", icon: Clock },
-    { id: "agentic-ai", label: "AI Coach", icon: Brain },
+    { id: "ai", label: "StudySage", icon: Brain },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -66,7 +65,7 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         <div className="flex items-center gap-3 mb-8 mt-12 lg:mt-0 px-6 pt-6">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple to-pink rounded-xl flex items-center justify-center shadow-lg animate-pulse-scale">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary via-purple to-pink rounded-xl flex items-center justify-center shadow-lg">
             <BookOpen className="h-6 w-6 text-white" />
           </div>
           <div>
