@@ -47,6 +47,23 @@ interface Goal {
 
 const Schedule = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+
+  // Load events from localStorage on component mount
+  useEffect(() => {
+    const storedEvents = localStorage.getItem('scheduleEvents');
+    if (storedEvents) {
+      try {
+        setEvents(JSON.parse(storedEvents));
+      } catch (error) {
+        console.error('Error loading stored events:', error);
+      }
+    }
+  }, []);
+
+  // Save events to localStorage whenever events change
+  useEffect(() => {
+    localStorage.setItem('scheduleEvents', JSON.stringify(events));
+  }, [events]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);

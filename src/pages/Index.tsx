@@ -11,8 +11,9 @@ import AttendanceDialog from "@/components/AttendanceDialog";
 import Settings from "@/components/Settings";
 import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
 import BudgetTrackerImproved from "@/components/BudgetTrackerImproved";
-import { EnhancedGoals } from "@/components/EnhancedGoals";
+import { SimpleGoals } from "@/components/SimpleGoals";
 import SmartAIAssistant from "@/components/SmartAIAssistant";
+import { AgenticAI } from "@/components/AgenticAI";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
@@ -96,9 +97,11 @@ const Index = () => {
       case "budget":
         return <BudgetTrackerImproved />;
       case "goals":
-        return <EnhancedGoals />;
+        return <SimpleGoals />;
       case "ai":
         return <SmartAIAssistant />;
+      case "agentic-ai":
+        return <AgenticAI />;
       case "settings":
         return <Settings />;
       default:

@@ -33,6 +33,7 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
     { id: "hobbies", label: "Hobbies", icon: Heart },
     { id: "budget", label: "Budget Tracker", icon: Wallet },
     { id: "ai", label: "AI Assistant", icon: Clock },
+    { id: "agentic-ai", label: "AI Coach", icon: Brain },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
