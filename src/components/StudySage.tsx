@@ -399,24 +399,24 @@ const StudySage = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/20 via-purple/10 to-success/20 p-6 border border-border/50">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/20 via-purple/10 to-success/20 p-4 sm:p-6 border border-border/50">
         <div className="absolute inset-0 mesh-background opacity-30"></div>
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
-              <Brain className="h-8 w-8 text-primary" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 rounded-xl bg-primary/10 border border-primary/20">
+              <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold gradient-text">StudySage</h1>
-              <p className="text-muted-foreground">Your AI-Powered Academic Coach</p>
-              {isAnalyzing && <Badge variant="secondary" className="mt-1">Analyzing patterns...</Badge>}
+              <h1 className="text-2xl sm:text-3xl font-bold gradient-text">StudySage</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Your AI-Powered Academic Coach</p>
+              {isAnalyzing && <Badge variant="secondary" className="mt-1 text-xs">Analyzing patterns...</Badge>}
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total Study Time</p>
-            <p className="text-2xl font-bold">{aggregatedStats.totalStudyHours.toFixed(1)}h</p>
+          <div className="text-left sm:text-right w-full sm:w-auto">
+            <p className="text-xs sm:text-sm text-muted-foreground">Total Study Time</p>
+            <p className="text-xl sm:text-2xl font-bold">{aggregatedStats.totalStudyHours.toFixed(1)}h</p>
           </div>
         </div>
       </div>
@@ -430,18 +430,18 @@ const StudySage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary">{subjects.length}</p>
-              <p className="text-sm text-muted-foreground">Active Subjects</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary">{subjects.length}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Active Subjects</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-success">{aggregatedStats.weeklyStudyHours.toFixed(1)}h</p>
-              <p className="text-sm text-muted-foreground">This Week</p>
+              <p className="text-xl sm:text-2xl font-bold text-success">{aggregatedStats.weeklyStudyHours.toFixed(1)}h</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">This Week</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-info">{aggregatedStats.attendancePercentage.toFixed(1)}%</p>
-              <p className="text-sm text-muted-foreground">Attendance</p>
+              <p className="text-xl sm:text-2xl font-bold text-info">{aggregatedStats.attendancePercentage.toFixed(1)}%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Attendance</p>
             </div>
           </div>
         </CardContent>
@@ -457,16 +457,16 @@ const StudySage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {patterns.map((pattern, index) => (
-                <Card key={index} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{pattern.timeSlot}</span>
-                      <Badge variant="outline" className={
+                <Card key={index} className="p-3 sm:p-4">
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-sm sm:text-base truncate">{pattern.timeSlot}</span>
+                      <Badge variant="outline" className={`text-xs shrink-0 ${
                         pattern.energyLevel === 'high' ? 'text-success' :
                         pattern.energyLevel === 'medium' ? 'text-warning' : 'text-destructive'
-                      }>
+                      }`}>
                         {pattern.energyLevel === 'high' ? <TrendingUp className="h-3 w-3 mr-1" /> :
                          pattern.energyLevel === 'medium' ? <Clock className="h-3 w-3 mr-1" /> :
                          <AlertTriangle className="h-3 w-3 mr-1" />}
@@ -474,7 +474,7 @@ const StudySage = () => {
                       </Badge>
                     </div>
                     <div>
-                      <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-xs sm:text-sm mb-1">
                         <span>Success Rate</span>
                         <span>{pattern.completionRate.toFixed(0)}%</span>
                       </div>
@@ -501,20 +501,20 @@ const StudySage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {recommendations.map((rec) => (
-                <div key={rec.id} className="p-4 rounded-lg border bg-muted/50">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
+                <div key={rec.id} className="p-3 sm:p-4 rounded-lg border bg-muted/50">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                       {rec.type === 'energy_match' && <TrendingUp className="h-4 w-4 text-primary" />}
                       {rec.type === 'break' && <Clock className="h-4 w-4 text-warning" />}
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium">{rec.title}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary">{rec.timeSlot}</Badge>
-                        <Badge variant="outline">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm sm:text-base">{rec.title}</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">{rec.description}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-xs">{rec.timeSlot}</Badge>
+                        <Badge variant="outline" className="text-xs">
                           {rec.confidence.toFixed(0)}% confidence
                         </Badge>
                       </div>
@@ -536,22 +536,22 @@ const StudySage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {smartInsights.map((insight, index) => (
               <Card 
                 key={index} 
-                className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                className={`p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
                   selectedInsight === insight.title ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => handleInsightClick(insight)}
               >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${insight.color}`}>
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className={`p-2 rounded-lg ${insight.color} shrink-0`}>
                     <insight.icon className="h-4 w-4 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-sm">{insight.title}</h4>
-                    <p className="text-xs text-muted-foreground mt-1">{insight.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-xs sm:text-sm">{insight.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 break-words">{insight.description}</p>
                   </div>
                 </div>
               </Card>
@@ -573,7 +573,7 @@ const StudySage = () => {
             placeholder="Ask me about your productivity patterns, study optimization, or academic goals..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[80px] sm:min-h-[100px] text-sm"
           />
           
           <div className="flex gap-2">
@@ -581,31 +581,32 @@ const StudySage = () => {
               onClick={askAI} 
               disabled={loading || !prompt.trim()}
               className="flex-1"
+              size="sm"
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Thinking...
+                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-2"></div>
+                  <span className="text-xs sm:text-sm">Thinking...</span>
                 </>
               ) : (
                 <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Ask StudySage
+                  <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                  <span className="text-xs sm:text-sm">Ask StudySage</span>
                 </>
               )}
             </Button>
-            <Button variant="outline" onClick={() => { setPrompt(""); setAnswer(""); }}>
-              <Trash2 className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={() => { setPrompt(""); setAnswer(""); }}>
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
 
           {answer && (
-            <div className="p-4 rounded-lg bg-muted/50 border">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
+            <div className="p-3 sm:p-4 rounded-lg bg-muted/50 border">
+              <h4 className="font-medium mb-2 flex items-center gap-2 text-sm sm:text-base">
                 <Brain className="h-4 w-4 text-primary" />
                 StudySage says:
               </h4>
-              <p className="text-sm whitespace-pre-wrap">{answer}</p>
+              <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{answer}</p>
             </div>
           )}
         </CardContent>
@@ -617,7 +618,7 @@ const StudySage = () => {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {[
               "How can I improve my study habits?",
               "What's my productivity pattern?",
@@ -627,7 +628,8 @@ const StudySage = () => {
               <Button 
                 key={index}
                 variant="outline" 
-                className="text-xs p-3 h-auto"
+                size="sm"
+                className="text-xs p-2 sm:p-3 h-auto text-center whitespace-normal"
                 onClick={() => setPrompt(action)}
               >
                 {action}
@@ -639,30 +641,32 @@ const StudySage = () => {
 
       {/* Task Completion Dialog */}
       <Dialog open={!!activeTaskDialog} onOpenChange={() => setActiveTaskDialog(null)}>
-        <DialogContent>
+        <DialogContent className="w-[90vw] max-w-md">
           <DialogHeader>
-            <DialogTitle>Task Completion Check</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Task Completion Check</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p>
+            <p className="text-sm sm:text-base">
               Your scheduled task "<strong>{activeTaskDialog?.title}</strong>" just ended.
               Did you complete it successfully?
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button 
                 onClick={() => recordTaskCompletion(activeTaskDialog.id, true, activeTaskDialog.goalId)}
                 className="flex-1"
+                size="sm"
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Yes, Completed
+                <span className="text-xs sm:text-sm">Yes, Completed</span>
               </Button>
               <Button 
                 variant="outline"
                 onClick={() => recordTaskCompletion(activeTaskDialog.id, false, activeTaskDialog.goalId)}
                 className="flex-1"
+                size="sm"
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                No, Incomplete
+                <span className="text-xs sm:text-sm">No, Incomplete</span>
               </Button>
             </div>
           </div>

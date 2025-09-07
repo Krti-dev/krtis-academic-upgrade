@@ -95,10 +95,10 @@ const StudyTracker = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div className="flex items-center gap-2 mb-2">
-        <BookOpen className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Study Tracker</h1>
+        <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold">Study Tracker</h1>
       </div>
 
       {/* CAT Marks Visual */}
@@ -110,12 +110,12 @@ const StudyTracker = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {catChartData.length > 0 ? (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Performance Gauge Charts */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Performance Gauges</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="text-base sm:text-lg font-semibold">Performance Gauges</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {/* CAT Performance Gauge */}
                     <div className="text-center">
                       <ResponsiveContainer width="100%" height={160}>
@@ -171,9 +171,9 @@ const StudyTracker = () => {
                 </div>
                 
                 {/* Subject Performance Chart */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Subject Performance</h3>
-                  <ResponsiveContainer width="100%" height={200}>
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="text-base sm:text-lg font-semibold">Subject Performance</h3>
+                  <ResponsiveContainer width="100%" height={180}>
                     <LineChart data={catChartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                       <XAxis 
@@ -227,24 +227,24 @@ const StudyTracker = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-info">
+                  <div className="text-xl sm:text-2xl font-bold text-info">
                     {(catChartData.reduce((sum, d) => sum + d.catPercent, 0) / catChartData.length).toFixed(1)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Avg CAT Marks</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Avg CAT Marks</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">
                     {(catChartData.reduce((sum, d) => sum + d.internalMarks, 0) / catChartData.length).toFixed(1)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Avg Internal Marks</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Avg Internal Marks</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-success">
+                  <div className="text-xl sm:text-2xl font-bold text-success">
                     {(catChartData.reduce((sum, d) => sum + d.attendance, 0) / catChartData.length).toFixed(1)}%
                   </div>
-                  <div className="text-sm text-muted-foreground">Avg Attendance</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Avg Attendance</div>
                 </div>
               </div>
             </div>
@@ -265,21 +265,28 @@ const StudyTracker = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {dbSubjects.map((subject) => (
-            <div key={subject.id} className="space-y-3 p-4 border rounded-lg">
+            <div key={subject.id} className="space-y-3 p-3 sm:p-4 border rounded-lg">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: subject.color }} />
-                <h4 className="font-medium">{subject.name}</h4>
-                <span className="text-sm text-muted-foreground ml-auto">
-                  {getSubjectCATPercent(subject.id).toFixed(1)}% • Internal: {getInternalMarks(subject.id).toFixed(1)}%
-                </span>
+                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: subject.color }} />
+                <h4 className="font-medium text-sm sm:text-base truncate">{subject.name}</h4>
+                <div className="hidden sm:block">
+                  <span className="text-xs sm:text-sm text-muted-foreground ml-auto">
+                    {getSubjectCATPercent(subject.id).toFixed(1)}% • Internal: {getInternalMarks(subject.id).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+              
+              <div className="sm:hidden text-xs text-muted-foreground">
+                CAT: {getSubjectCATPercent(subject.id).toFixed(1)}% • Internal: {getInternalMarks(subject.id).toFixed(1)}%
               </div>
               
               {(subjectCATMarks[subject.id] || []).map((catMark, i) => (
-                <div key={i} className="grid grid-cols-2 gap-3">
+                <div key={i} className="grid grid-cols-2 gap-2 sm:gap-3">
                   <Input
                     type="number"
                     placeholder="CAT Scored"
                     value={catMark.scored}
+                    className="text-sm"
                     onChange={(e) => {
                       const newMarks = { ...subjectCATMarks };
                       if (!newMarks[subject.id]) newMarks[subject.id] = [];
@@ -291,6 +298,7 @@ const StudyTracker = () => {
                     type="number"
                     placeholder="CAT Total"
                     value={catMark.total}
+                    className="text-sm"
                     onChange={(e) => {
                       const newMarks = { ...subjectCATMarks };
                       if (!newMarks[subject.id]) newMarks[subject.id] = [];
@@ -305,6 +313,7 @@ const StudyTracker = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  className="text-xs"
                   onClick={() => {
                     const newMarks = { ...subjectCATMarks };
                     if (!newMarks[subject.id]) newMarks[subject.id] = [];
@@ -317,6 +326,7 @@ const StudyTracker = () => {
                 <Button 
                   variant="ghost" 
                   size="sm"
+                  className="text-xs"
                   onClick={() => {
                     const newMarks = { ...subjectCATMarks };
                     newMarks[subject.id] = [{ scored: 0, total: 25 }];
@@ -349,8 +359,8 @@ const StudyTracker = () => {
           </div>
           
           {semesterSGPAs.map((sgpa, i) => (
-            <div key={i} className="grid grid-cols-3 gap-3 items-center">
-              <div className="text-sm font-medium">Semester {i + 1}</div>
+            <div key={i} className="grid grid-cols-3 gap-2 sm:gap-3 items-center">
+              <div className="text-xs sm:text-sm font-medium">Semester {i + 1}</div>
               <Input
                 type="number"
                 step="0.01"
@@ -358,6 +368,7 @@ const StudyTracker = () => {
                 max="10"
                 placeholder="SGPA"
                 value={sgpa}
+                className="text-sm"
                 onChange={(e) => {
                   const newSGPAs = [...semesterSGPAs];
                   newSGPAs[i] = Number(e.target.value);
@@ -366,6 +377,8 @@ const StudyTracker = () => {
               />
               <Button 
                 variant="ghost" 
+                size="sm"
+                className="text-xs"
                 onClick={() => setSemesterSGPAs(semesterSGPAs.filter((_, idx) => idx !== i))}
               >
                 Remove

@@ -181,34 +181,34 @@ export const SimpleGoals = () => {
   };
 
   return (
-    <div className="space-y-4 p-6">
-      <h1 className="text-2xl font-bold mb-6">Notes</h1>
+    <div className="space-y-4 p-4 sm:p-6">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Notes</h1>
       
       {/* Add new note */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 sm:gap-3">
         <Textarea
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Take a note..."
-          className="min-h-[40px] resize-none"
+          className="min-h-[40px] resize-none flex-1"
           rows={1}
         />
-        <Button onClick={addNote} size="sm" className="px-3">
+        <Button onClick={addNote} size="sm" className="px-3 shrink-0">
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Notes grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {notes.map((note) => (
-          <Card key={note.id} className={`p-4 hover:shadow-md transition-shadow ${note.completed ? 'bg-muted/50' : ''}`}>
+          <Card key={note.id} className={`p-3 sm:p-4 hover:shadow-md transition-shadow ${note.completed ? 'bg-muted/50' : ''}`}>
             <CardContent className="p-0 space-y-3">
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2 sm:gap-3">
                 <Checkbox
                   checked={note.completed}
                   onCheckedChange={() => toggleComplete(note.id, note.completed)}
-                  className="mt-1"
+                  className="mt-1 shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   {editingId === note.id ? (
@@ -217,12 +217,12 @@ export const SimpleGoals = () => {
                       onChange={(e) => setEditContent(e.target.value)}
                       onKeyPress={handleKeyPress}
                       onBlur={saveEdit}
-                      className="min-h-[60px] text-sm border-none p-0 resize-none focus-visible:ring-0"
+                      className="min-h-[60px] text-sm border-none p-0 resize-none focus-visible:ring-0 w-full"
                       autoFocus
                     />
                   ) : (
                     <p 
-                      className={`text-sm whitespace-pre-wrap cursor-pointer ${note.completed ? 'line-through text-muted-foreground' : ''}`}
+                      className={`text-sm whitespace-pre-wrap cursor-pointer break-words ${note.completed ? 'line-through text-muted-foreground' : ''}`}
                       onClick={() => startEdit(note)}
                     >
                       {note.content}
@@ -231,11 +231,11 @@ export const SimpleGoals = () => {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between pt-2 border-t">
-                <span className="text-xs text-muted-foreground">
+              <div className="flex items-center justify-between pt-2 border-t gap-2">
+                <span className="text-xs text-muted-foreground truncate">
                   {new Date(note.created_at).toLocaleDateString()}
                 </span>
-                <div className="flex gap-1">
+                <div className="flex gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"

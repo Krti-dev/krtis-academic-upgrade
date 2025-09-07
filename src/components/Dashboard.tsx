@@ -191,41 +191,43 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 rounded-lg border">
-        <h1 className="text-3xl font-bold mb-2">Welcome to Academia! 🎓</h1>
-        <p className="text-muted-foreground">
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 sm:p-6 rounded-lg border">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome to Academia! 🎓</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           You've studied for {stats.totalWeeklyHours.toFixed(1)} hours this week. {getMotivationalMessage(stats.totalWeeklyHours)}
         </p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-foreground">Study Hours</CardTitle>
-            <Clock className="h-4 w-4 text-primary" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-foreground">Study Hours</CardTitle>
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-foreground">{stats.totalWeeklyHours.toFixed(1)}h</div>
+            <div className="text-lg sm:text-2xl font-bold text-foreground">{stats.totalWeeklyHours.toFixed(1)}h</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <TrendingUp className="h-3 w-3 text-success" />
-              <span>This week's total</span>
+              <span className="hidden sm:inline">This week's total</span>
+              <span className="sm:hidden">Weekly</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple/10 to-purple/5 border-purple/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium text-foreground">Avg. Effectiveness</CardTitle>
-            <Zap className="h-4 w-4 text-purple" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-foreground">Effectiveness</CardTitle>
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-purple" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-2xl font-bold text-foreground">{(stats.avgEffectiveness * 20).toFixed(0)}%</div>
+            <div className="text-lg sm:text-2xl font-bold text-foreground">{(stats.avgEffectiveness * 20).toFixed(0)}%</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <Target className="h-3 w-3 text-purple" />
-              <span>Study quality</span>
+              <span className="hidden sm:inline">Study quality</span>
+              <span className="sm:hidden">Quality</span>
             </div>
           </CardContent>
         </Card>
@@ -234,25 +236,26 @@ const Dashboard = () => {
 
         <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Subjects</CardTitle>
-            <BookOpen className="h-4 w-4 text-info" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-foreground">Subjects</CardTitle>
+            <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 text-info" />
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="text-2xl font-bold text-foreground">{subjects.length}</div>
+            <div className="text-lg sm:text-2xl font-bold text-foreground">{subjects.length}</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <BookOpen className="h-3 w-3 text-info" />
-              <span>Active subjects</span>
+              <span className="hidden sm:inline">Active subjects</span>
+              <span className="sm:hidden">Active</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-warning/5 to-warning/10 border-warning/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Study Streak</CardTitle>
-            <Award className="h-4 w-4 text-warning" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-foreground">Streak</CardTitle>
+            <Award className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-lg sm:text-2xl font-bold text-foreground">
               {(() => {
                 let streak = 0;
                 const today = new Date();
@@ -270,39 +273,42 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <Award className="h-3 w-3 text-warning" />
-              <span>Keep it going! 🔥</span>
+              <span className="hidden sm:inline">Keep it going! 🔥</span>
+              <span className="sm:hidden">Days</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-pink/10 to-pink/5 border-pink/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Hobby Time</CardTitle>
-            <Heart className="h-4 w-4 text-pink" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-foreground">Hobbies</CardTitle>
+            <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-pink" />
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-lg sm:text-2xl font-bold text-foreground">
               {Math.floor(stats.totalHobbyTime / 60)}h
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <Heart className="h-3 w-3 text-pink" />
-              <span>This week</span>
+              <span className="hidden sm:inline">This week</span>
+              <span className="sm:hidden">Weekly</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-emerald/10 to-emerald/5 border-emerald/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-foreground">Budget Status</CardTitle>
-            <Wallet className="h-4 w-4 text-emerald" />
+            <CardTitle className="text-xs sm:text-sm font-medium text-foreground">Budget</CardTitle>
+            <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-emerald" />
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-lg sm:text-2xl font-bold text-foreground">
               ₹{Math.max(0, stats.totalBudget - stats.totalSpent).toFixed(0)}
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
               <TrendingUp className="h-3 w-3 text-emerald" />
-              <span>Remaining</span>
+              <span className="hidden sm:inline">Remaining</span>
+              <span className="sm:hidden">Left</span>
             </div>
           </CardContent>
         </Card>
@@ -311,9 +317,9 @@ const Dashboard = () => {
       {/* Charts Grid */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="subjects" className="text-xs sm:text-sm">Subjects</TabsTrigger>
+          <TabsTrigger value="attendance" className="text-xs sm:text-sm">Attendance</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
