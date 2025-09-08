@@ -11,7 +11,8 @@ import {
   Brain,
   Clock,
   Heart,
-  Wallet
+  Wallet,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "focus", label: "Focus Timer", icon: Brain },
     { id: "goals", label: "Goals", icon: Target },
-    { id: "skills", label: "Skills", icon: Target },
+    { id: "skills", label: "Skills", icon: Trophy },
     { id: "hobbies", label: "Hobbies", icon: Heart },
     { id: "budget", label: "Budget Tracker", icon: Wallet },
     { id: "ai", label: "StudySage", icon: Brain },
