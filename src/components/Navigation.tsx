@@ -30,6 +30,7 @@ const Navigation = ({ activeTab, setActiveTab, children }: NavigationProps) => {
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "focus", label: "Focus Timer", icon: Brain },
     { id: "goals", label: "Goals", icon: Target },
+    { id: "skills", label: "Skills", icon: Target },
     { id: "hobbies", label: "Hobbies", icon: Heart },
     { id: "budget", label: "Budget Tracker", icon: Wallet },
     { id: "ai", label: "StudySage", icon: Brain },

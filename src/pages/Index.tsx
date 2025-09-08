@@ -13,6 +13,7 @@ import HobbyTrackerWithTimer from "@/components/HobbyTrackerWithTimer";
 import BudgetTrackerImproved from "@/components/BudgetTrackerImproved";
 import { SimpleGoals } from "@/components/SimpleGoals";
 import StudySage from "@/components/StudySage";
+import SkillsTracker from "@/components/SkillsTracker";
 import { Toaster } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,6 +98,8 @@ const Index = () => {
         return <BudgetTrackerImproved />;
       case "goals":
         return <SimpleGoals />;
+      case "skills":
+        return <SkillsTracker />;
       case "ai":
         return <StudySage />;
       case "settings":
