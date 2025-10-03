@@ -9,9 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Target, TrendingUp, Award, FileText, Star, Trash2, Edit3 } from "lucide-react";
+import { Plus, Target, TrendingUp, Award, FileText, Star, Trash2, Edit3, BookOpen, Zap, Brain, Calendar } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import ResumeBuilder from "@/components/ResumeBuilder";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Skill {
   id: string;
@@ -39,6 +40,23 @@ const SkillsTracker = () => {
   const [newSkillDialog, setNewSkillDialog] = useState(false);
   const [resumeDialog, setResumeDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [loadingAI, setLoadingAI] = useState(false);
+  
+  // Load skills from localStorage
+  useEffect(() => {
+    const savedSkills = localStorage.getItem('trackedSkills');
+    if (savedSkills) {
+      setSkills(JSON.parse(savedSkills));
+    }
+  }, []);
+  
+  // Save skills to localStorage
+  useEffect(() => {
+    if (skills.length > 0) {
+      localStorage.setItem('trackedSkills', JSON.stringify(skills));
+    }
+  }, [skills]);
 
   const [newSkill, setNewSkill] = useState({
     name: "",
@@ -165,6 +183,59 @@ const SkillsTracker = () => {
     if (skills.length === 0) return 0;
     return Math.round(skills.reduce((acc, skill) => acc + skill.progress, 0) / skills.length);
   };
+  
+  const getAISuggestions = async () => {
+    setLoadingAI(true);
+    try {
+      const skillNames = skills.map(s => s.name).join(', ');
+      const { data, error } = await supabase.functions.invoke('generate-with-ai', {
+        body: { 
+          prompt: `Based on these skills: ${skillNames} and target career: ${targetCareer || 'not specified'}, suggest 5 complementary skills to learn next. Just list the skills, nothing else.`,
+        }
+      });
+
+      if (error) throw error;
+      
+      const suggestions = data.generatedText?.split('\n').filter((s: string) => s.trim()).slice(0, 5) || [];
+      setAiSuggestions(suggestions);
+      
+      toast({
+        title: "AI Suggestions Generated",
+        description: "Here are personalized skill recommendations for you!"
+      });
+    } catch (error) {
+      console.error('AI suggestion error:', error);
+      setAiSuggestions([
+        "Advanced Data Structures",
+        "Cloud Architecture",
+        "System Design",
+        "Soft Skills & Communication",
+        "Project Leadership"
+      ]);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+  
+  const addMilestone = (skillId: string) => {
+    const milestone = prompt("Enter milestone description:");
+    if (!milestone) return;
+    
+    setSkills(skills.map(skill => {
+      if (skill.id === skillId) {
+        return {
+          ...skill,
+          learningPath: [...skill.learningPath, milestone]
+        };
+      }
+      return skill;
+    }));
+    
+    toast({
+      title: "Milestone Added",
+      description: "New learning milestone has been added!"
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 p-4 lg:p-8">
@@ -232,8 +303,35 @@ const SkillsTracker = () => {
               </Card>
             </div>
 
+            {/* AI-Powered Suggestions */}
+            {aiSuggestions.length > 0 && (
+              <Card className="glass-card border-primary/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Brain className="h-5 w-5 text-primary" />
+                    AI Skill Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {aiSuggestions.map((suggestion, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        <Zap className="h-3 w-3 mr-1" />
+                        {suggestion}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             {/* Quick Actions */}
             <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={getAISuggestions} disabled={loadingAI} variant="outline" className="flex-1 sm:flex-none">
+                <Brain className="h-4 w-4 mr-2" />
+                {loadingAI ? "Thinking..." : "Get AI Suggestions"}
+              </Button>
+              
               <Dialog open={newSkillDialog} onOpenChange={setNewSkillDialog}>
                 <DialogTrigger asChild>
                   <Button className="flex-1 sm:flex-none gradient-button">
@@ -380,19 +478,33 @@ const SkillsTracker = () => {
                         </ul>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max={skill.targetLevel}
-                          value={skill.currentLevel}
-                          onChange={(e) => updateSkillProgress(skill.id, parseInt(e.target.value) || 0)}
-                          className="text-xs"
-                          placeholder="Update progress"
-                        />
-                        <Button size="sm" variant="outline" className="text-xs px-2">
-                          Update
-                        </Button>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            max={skill.targetLevel}
+                            value={skill.currentLevel}
+                            onChange={(e) => updateSkillProgress(skill.id, parseInt(e.target.value) || 0)}
+                            className="text-xs"
+                            placeholder="Update progress"
+                          />
+                          <Button size="sm" variant="outline" className="text-xs px-2">
+                            Update
+                          </Button>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="text-xs flex-1"
+                            onClick={() => addMilestone(skill.id)}
+                          >
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Add Milestone
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

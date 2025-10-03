@@ -6,13 +6,10 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle, Calculator, Heart, Wallet } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, Tooltip } from 'recharts';
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useMemo, useState } from "react";
-import AttendanceMarksDialog from "./AttendanceMarksDialog";
+import { useMemo } from "react";
 
 const Dashboard = () => {
   const { subjects, timetable, attendance, studySessions, expenses, budgetLimits, loading, getAttendanceStats } = useSupabaseData();
-  const [selectedSubject, setSelectedSubject] = useState<any>(null);
-  const [marksDialogOpen, setMarksDialogOpen] = useState(false);
 
   // Real-time calculated data
   const stats = useMemo(() => {
@@ -749,12 +746,8 @@ const Dashboard = () => {
                   return (
                     <Card 
                       key={subject.id} 
-                      className="border-l-4 cursor-pointer hover:shadow-md transition-shadow" 
+                      className="border-l-4" 
                       style={{ borderLeftColor: subject.color }}
-                      onClick={() => {
-                        setSelectedSubject({ ...subject, attendanceStats: subjectStats });
-                        setMarksDialogOpen(true);
-                      }}
                     >
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2">
@@ -805,15 +798,6 @@ const Dashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {selectedSubject && (
-        <AttendanceMarksDialog
-          open={marksDialogOpen}
-          onOpenChange={setMarksDialogOpen}
-          subject={selectedSubject}
-          attendanceStats={selectedSubject.attendanceStats}
-        />
-      )}
     </div>
   );
 };
