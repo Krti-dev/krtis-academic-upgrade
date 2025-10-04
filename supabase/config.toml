@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.study-materials-generator]
 verify_jwt = false
 
+[functions.chat-ai]
+verify_jwt = false
+
 [db]
 port = 54322
 shadow_port = 54320

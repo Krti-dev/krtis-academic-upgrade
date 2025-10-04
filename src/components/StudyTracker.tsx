@@ -54,7 +54,7 @@ const StudyTracker = () => {
     const attendancePercent = subjectAttendance.length > 0 
       ? (subjectAttendance.filter(a => a.present).length / subjectAttendance.length) * 100 
       : 0;
-    const assignmentPercent = 85; // Placeholder for assignment marks
+    const assignmentPercent = 100; // Default to 100% if no assignments tracked
     
     return (catPercent * 0.5) + (attendancePercent * 0.2) + (assignmentPercent * 0.3);
   };

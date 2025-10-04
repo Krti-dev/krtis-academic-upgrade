@@ -373,20 +373,24 @@ const StudySage = () => {
     setLoading(true);
     
     try {
-      const contextualResponse = generateContextualResponse(prompt, aggregatedStats);
-      
-      const { data, error } = await supabase.functions.invoke('generate-with-ai', {
+      const { data, error } = await supabase.functions.invoke('chat-ai', {
         body: { 
-          prompt: `${prompt}\n\nContext: ${contextualResponse}\n\nUser Profile: ${JSON.stringify(aggregatedStats)}`,
+          message: prompt,
           context: aggregatedStats
         }
       });
 
       if (error) throw error;
       
-      setAnswer(data.generatedText || contextualResponse);
+      setAnswer(data.response || 'Sorry, I could not generate a response.');
+      setPrompt(""); // Clear input after sending
     } catch (error) {
       console.error('Error calling AI:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive"
+      });
       setAnswer(generateContextualResponse(prompt, aggregatedStats));
     } finally {
       setLoading(false);
