@@ -278,10 +278,11 @@ const StudySage = () => {
       totalStudyHours,
       weeklyStudyHours,
       attendancePercentage,
+      totalSubjects: subjects.length,
       totalSessions: studySessions.length,
       avgSessionDuration: studySessions.length > 0 ? totalStudyHours / studySessions.length : 0
     };
-  }, [studySessions, getAttendanceStats]);
+  }, [studySessions, subjects, getAttendanceStats]);
 
   // Smart insights generation
   const smartInsights = useMemo((): InsightCard[] => {
