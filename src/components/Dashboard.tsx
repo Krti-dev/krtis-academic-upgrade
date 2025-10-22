@@ -3,13 +3,40 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle, Calculator, Heart, Wallet } from "lucide-react";
+import { CalendarDays, Clock, TrendingUp, BookOpen, Target, Zap, Award, CheckCircle, Calculator, Heart, Wallet, Bell } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, Tooltip } from 'recharts';
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import AttendanceStrategy from "./AttendanceStrategy";
+import { requestNotificationPermission, sendAttendanceAlert } from "@/utils/notifications";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { subjects, timetable, attendance, studySessions, expenses, budgetLimits, loading, getAttendanceStats } = useSupabaseData();
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  // Request notification permissions on mount
+  useEffect(() => {
+    requestNotificationPermission().then(granted => {
+      setNotificationsEnabled(granted);
+      if (granted) {
+        toast.success("Notifications enabled! You'll receive attendance alerts.");
+      }
+    });
+  }, []);
+
+  // Check attendance and send alerts
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+    
+    const attendanceStats = getAttendanceStats();
+    attendanceStats.subjects.forEach((subjectStat: any) => {
+      if (subjectStat.percentage < 75) {
+        sendAttendanceAlert(subjectStat.subject.name, subjectStat.percentage, 75);
+      }
+    });
+  }, [attendance, notificationsEnabled, getAttendanceStats]);
 
   // Real-time calculated data
   const stats = useMemo(() => {
@@ -785,7 +812,12 @@ const Dashboard = () => {
                             className="h-2"
                           />
                         </div>
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => setSelectedSubject({ subject, stats: subjectStats })}
+                        >
                           <Calculator className="h-4 w-4 mr-2" />
                           Calculate Strategy
                         </Button>
@@ -798,6 +830,44 @@ const Dashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Attendance Strategy Dialog */}
+      {selectedSubject && (
+        <AttendanceStrategy
+          open={!!selectedSubject}
+          onOpenChange={(open) => !open && setSelectedSubject(null)}
+          subject={selectedSubject.subject}
+          stats={selectedSubject.stats}
+        />
+      )}
+
+      {/* Notifications Toggle */}
+      {!notificationsEnabled && (
+        <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground p-4 rounded-lg shadow-lg max-w-sm">
+          <div className="flex items-start gap-3">
+            <Bell className="h-5 w-5 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold mb-1">Enable Notifications</p>
+              <p className="text-sm opacity-90 mb-3">Get alerts when your attendance drops below 75%</p>
+              <Button 
+                size="sm" 
+                variant="secondary"
+                onClick={async () => {
+                  const granted = await requestNotificationPermission();
+                  setNotificationsEnabled(granted);
+                  if (granted) {
+                    toast.success("Notifications enabled!");
+                  } else {
+                    toast.error("Please allow notifications in your browser settings");
+                  }
+                }}
+              >
+                Enable Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

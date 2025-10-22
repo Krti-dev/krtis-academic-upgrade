@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { scheduleClassReminder, sendAttendanceReminder } from "@/utils/notifications";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Dashboard from "@/components/Dashboard";
@@ -64,6 +65,7 @@ const Index = () => {
         if (!alreadyPrompted && todaysClasses.length > 0) {
           setTimeout(() => {
             setAttendanceDialogOpen(true);
+            sendAttendanceReminder();
             localStorage.setItem(attendanceKey, 'true');
           }, 2000); // Small delay to let the app load
         }
@@ -75,6 +77,20 @@ const Index = () => {
     // Check every hour
     const interval = setInterval(checkAttendancePrompt, 60 * 60 * 1000);
     return () => clearInterval(interval);
+  }, [setupComplete, timetable]);
+
+  // Schedule class reminders
+  useEffect(() => {
+    if (!setupComplete) return;
+
+    const today = new Date().getDay();
+    const todaysClasses = timetable.filter(entry => entry.day_of_week === today);
+
+    todaysClasses.forEach(classEntry => {
+      if (classEntry.subject) {
+        scheduleClassReminder(classEntry.subject.name, classEntry.start_time, 15);
+      }
+    });
   }, [setupComplete, timetable]);
 
   const getTodaysClasses = () => {
