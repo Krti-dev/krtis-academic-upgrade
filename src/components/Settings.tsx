@@ -5,18 +5,27 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Settings as SettingsIcon, RefreshCw, Trash2, Calendar, AlertTriangle, RotateCcw, Sun, Moon, Palette } from "lucide-react";
+import { Settings as SettingsIcon, RefreshCw, Trash2, Calendar, AlertTriangle, RotateCcw, Sun, Moon, Palette, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
+import { requestNotificationPermission } from "@/utils/notifications";
 
 const Settings = () => {
   const { clearTimetable, refetch } = useSupabaseData();
   const [clearing, setClearing] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
+
+  useEffect(() => {
+    // Check current notification permission
+    if ('Notification' in window) {
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -30,6 +39,23 @@ const Settings = () => {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const granted = await requestNotificationPermission();
+      setNotificationsEnabled(granted);
+      if (granted) {
+        toast.success("Notifications enabled!");
+        localStorage.removeItem('notifications_dismissed');
+      } else {
+        toast.error("Please allow notifications in your browser settings");
+      }
+    } else {
+      toast.info("Notifications disabled. You can re-enable them anytime.");
+      setNotificationsEnabled(false);
+      localStorage.setItem('notifications_dismissed', 'true');
+    }
+  };
 
   const handleClearTimetable = async () => {
     setClearing(true);
@@ -73,6 +99,61 @@ const Settings = () => {
           <p className="text-muted-foreground">Manage your Academia preferences</p>
         </div>
       </div>
+
+      {/* Notifications */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Notifications
+          </CardTitle>
+          <CardDescription>
+            Manage your notification preferences for class reminders and alerts
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="notifications" className="cursor-pointer">Push Notifications</Label>
+              <p className="text-sm text-muted-foreground">
+                Get alerts for class reminders and when attendance drops below 75%
+              </p>
+            </div>
+            <Switch
+              id="notifications"
+              checked={notificationsEnabled}
+              onCheckedChange={handleNotificationToggle}
+            />
+          </div>
+
+          {!('Notification' in window) && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Your browser doesn't support notifications
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {Notification.permission === 'denied' && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Notifications are blocked. Please enable them in your browser settings.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {notificationsEnabled && (
+            <Alert>
+              <Bell className="h-4 w-4" />
+              <AlertDescription>
+                You'll receive notifications 15 minutes before each class and alerts when attendance is low.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Theme Settings */}
       <Card>

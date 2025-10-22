@@ -842,28 +842,41 @@ const Dashboard = () => {
       )}
 
       {/* Notifications Toggle */}
-      {!notificationsEnabled && (
-        <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground p-4 rounded-lg shadow-lg max-w-sm">
+      {Notification.permission === 'default' && !localStorage.getItem('notifications_dismissed') && (
+        <div className="fixed bottom-4 right-4 bg-card border shadow-lg p-4 rounded-lg max-w-sm z-50">
           <div className="flex items-start gap-3">
-            <Bell className="h-5 w-5 mt-0.5" />
+            <Bell className="h-5 w-5 mt-0.5 text-primary" />
             <div className="flex-1">
-              <p className="font-semibold mb-1">Enable Notifications</p>
-              <p className="text-sm opacity-90 mb-3">Get alerts when your attendance drops below 75%</p>
-              <Button 
-                size="sm" 
-                variant="secondary"
-                onClick={async () => {
-                  const granted = await requestNotificationPermission();
-                  setNotificationsEnabled(granted);
-                  if (granted) {
-                    toast.success("Notifications enabled!");
-                  } else {
-                    toast.error("Please allow notifications in your browser settings");
-                  }
-                }}
-              >
-                Enable Now
-              </Button>
+              <p className="font-semibold mb-1">Enable Notifications?</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                Get alerts for class reminders and when attendance drops below 75%
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={async () => {
+                    const granted = await requestNotificationPermission();
+                    setNotificationsEnabled(granted);
+                    if (granted) {
+                      toast.success("Notifications enabled!");
+                    } else {
+                      toast.error("Please allow notifications in your browser settings");
+                    }
+                  }}
+                >
+                  Enable
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    localStorage.setItem('notifications_dismissed', 'true');
+                    toast.info("You can enable notifications later from browser settings");
+                  }}
+                >
+                  Not Now
+                </Button>
+              </div>
             </div>
           </div>
         </div>

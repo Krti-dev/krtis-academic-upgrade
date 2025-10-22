@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, XCircle, Clock, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useSupabaseData, TimetableEntry } from "@/hooks/useSupabaseData";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AttendanceDialogProps {
   open: boolean;
@@ -46,14 +47,41 @@ const AttendanceDialog = ({ open, onOpenChange, todaysClasses, currentDate }: At
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const promises = todaysClasses.map(classItem => {
+      // Check for existing attendance entries for today
+      const { data: existingAttendance, error: fetchError } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('date', currentDate);
+
+      if (fetchError) throw fetchError;
+
+      const promises = todaysClasses.map(async (classItem) => {
         const attendance = attendanceData[classItem.id];
-        return addAttendanceEntry({
-          subject_id: classItem.subject_id,
-          date: currentDate,
-          present: attendance.present,
-          note: attendance.note || undefined
-        });
+        
+        // Check if attendance already exists for this subject today
+        const existing = existingAttendance?.find(a => a.subject_id === classItem.subject_id);
+        
+        if (existing) {
+          // Update existing attendance
+          const { error: updateError } = await supabase
+            .from('attendance')
+            .update({
+              present: attendance.present,
+              note: attendance.note || null
+            })
+            .eq('id', existing.id);
+            
+          if (updateError) throw updateError;
+          return existing;
+        } else {
+          // Create new attendance entry
+          return addAttendanceEntry({
+            subject_id: classItem.subject_id,
+            date: currentDate,
+            present: attendance.present,
+            note: attendance.note || undefined
+          });
+        }
       });
 
       await Promise.all(promises);
@@ -61,6 +89,7 @@ const AttendanceDialog = ({ open, onOpenChange, todaysClasses, currentDate }: At
       toast.success("Attendance recorded successfully!");
       onOpenChange(false);
     } catch (error) {
+      console.error('Error recording attendance:', error);
       toast.error("Failed to record attendance");
     } finally {
       setSubmitting(false);
